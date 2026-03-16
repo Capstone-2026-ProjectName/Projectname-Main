@@ -1,3 +1,35 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+@media print {
+  /* 인쇄 시 배경색과 글자색을 그대로 유지 */
+  body {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+    background-color: white !important;
+  }
+  
+  /* 입력창, 헤더, 버튼 등 이력서 외의 모든 요소 숨기기 */
+  header, form, button, .lg\:w-\[450px\] {
+    display: none !important;
+  }
+
+  /* 이력서 영역만 화면에 꽉 차게 설정 */
+  .max-w-7xl {
+    display: block !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  .shadow-2xl, .border-t-\[12px\] {
+    box-shadow: none !important;
+    border-top: none !important;
+  }
+
+  /* A4 사이즈 강제 설정 */
+  @page {
+    size: A4;
+    margin: 0;
+  }
+}
