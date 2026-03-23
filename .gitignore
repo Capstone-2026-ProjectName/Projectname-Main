@@ -1,0 +1,14 @@
+# 의존성 파일 (모든 폴더의 node_modules 제외)
+**/node_modules/
+
+# 빌드 결과물
+frontend/build/
+backend/dist/
+
+# 환경 변수 (보안 파일)
+.env
+.env.local
+
+# 운영체제 임시 파일
+.DS_Store
+Thumbs.db
