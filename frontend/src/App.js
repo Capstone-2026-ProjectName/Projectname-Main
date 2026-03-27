@@ -13,7 +13,9 @@ function App() {
 				githubUrl: "",
 				blogUrl: "",
 				resumeTitle: "개발자 이력서",
-    education: "",
+    school: "", // 학교명
+				major: "", // 전공
+				gpa:	"", // 학점
     skills: "",
 				projects: [
 					{ name: "", description: "", role: "", techStack: "", period: "" } // 프로젝트 동적 배열
@@ -145,7 +147,7 @@ function App() {
           handleChange={handleChange}
 										handleProjectChange={handleProjectChange}
 										addProject={addProject}
-										removeproject={removeproject}
+										removeProject={removeproject}
           handleSubmit={handleSubmit}
         />
 							)}
