@@ -1,6 +1,22 @@
 import React from "react";
 
+import { GitHubCalendar } from "react-github-calendar"; //	GitHub 기여도 그래프 컴포넌트
+
 const ResumePreview = React.forwardRef(({ formData }, ref) => {
+
+	//	GitHub URL에서 사용자 이름 추출 함수
+	const GetGithubUsername = (url) => { 
+				if (!url) return null;
+				let username = url.trim();
+				if (username.includes("github.com/")) {
+					const splitUrl = username.split("github.com/")[1];
+					username = splitUrl.split("/")[0];
+				}
+				return username;
+			};
+
+			const githubUsername = GetGithubUsername(formData.githubUrl);
+
   return (
     <div
       ref={ref}
@@ -55,7 +71,7 @@ const ResumePreview = React.forwardRef(({ formData }, ref) => {
           </section>
         )}
 
-        {/* 기술 스택 섹션 (조건문 다이어트 완료) */}
+        {/* 기술 스택 섹션 */}
         {formData.skills && (
           <section>
             <h3 className="text-sm uppercase tracking-widest text-slate-800 font-black mb-3 border-b border-slate-800 pb-1">
@@ -71,7 +87,25 @@ const ResumePreview = React.forwardRef(({ formData }, ref) => {
           </section>
         )}
 
-        {/* 프로젝트 섹션 (조건문 다이어트 완료) */}
+								{/*	GitHub 기여도 그래프 섹션 */}
+								{githubUsername && (
+									<section>
+										<h3 className="text-sm uppercase tracking-widest text-slate-800 font-black mb-4 border-b border-slate-800 pb-1">
+											Contributions
+										</h3>
+										<div className="flex justify-center p-6 bg-slate-50 border border-slate-200 rounded-xl overflow-x-auto custom-scrollbar">
+											<GitHubCalendar 
+											username={githubUsername} 
+											blockSize={12} 
+											blockMargin={4}
+											fontSize={12}
+											colorScheme="light"
+											/>
+										</div>
+									</section>
+								)}
+
+        {/* 프로젝트 섹션 */}
         <section>
           <h3 className="text-sm uppercase tracking-widest text-slate-800 font-black mb-4 border-b border-slate-800 pb-1">
             Projects & Experience
