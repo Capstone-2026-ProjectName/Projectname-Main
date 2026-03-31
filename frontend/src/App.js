@@ -72,6 +72,7 @@ function App() {
           email: user.email || "",
           subdomain: user.subdomain || "",
           bio: user.bio || "",
+										profileImageUrl: user.profileImageUrl || "", //	프로필 이미지 URL도 상태에 반영
           githubUrl: user.githubUrl || "",
           blogUrl: user.blogUrl || "",
           resumeTitle: resume.title || "개발자 이력서",
