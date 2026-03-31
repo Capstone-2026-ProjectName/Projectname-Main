@@ -85,6 +85,7 @@ app.get('/api/user/:subdomain', async (req, res) => {
 		if (!user) {
 			return res.status(404).json({ message: "사용자를 찾을 수 없습니다." });
 		}
+		console.log("DB에서 불러온 유저 정보:", user.username, user.profileImageUrl);
 		res.status(200).json(user);
 	} catch (error) {
 		console.error("데이터 로드 에러:", error);
@@ -97,7 +98,7 @@ app.post('/api/save-resume', async (req, res) => {
   try {
     // 프론트엔드에서 보낸 데이터 구조 분해 할당
     const {
-      username, email, subdomain, bio, githubUrl, blogUrl,
+      username, email, subdomain, bio, githubUrl, blogUrl, profileImageUrl,
       resumeTitle, school, major, gpa, skills, projects
     } = req.body;
 
@@ -139,6 +140,7 @@ app.post('/api/save-resume', async (req, res) => {
         username: username || "",
         subdomain: subdomain,
         bio: bio || "",
+								profileImageUrl: profileImageUrl || "", // 프로필 이미지 URL도 업데이트
         githubUrl: githubUrl || "",
         blogUrl: blogUrl || ""
       },
@@ -148,6 +150,7 @@ app.post('/api/save-resume', async (req, res) => {
         username: username || "이름 없음",
         subdomain: subdomain,
         bio: bio || "",
+								profileImageUrl: profileImageUrl || "", // 프로필 이미지 URL도 저장
         githubUrl: githubUrl || "",
         blogUrl: blogUrl || ""
       }
