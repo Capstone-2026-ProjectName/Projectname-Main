@@ -62,7 +62,8 @@ function App() {
 				const token = localStorage.getItem("oneresume-token"); // 브라우저에서 토큰 꺼내기
     const host = window.location.hostname;
     const parts = host.split('.');
-    const subdomain = (parts.length > 1 && parts[0] !== 'www' && parts[0] !== 'localhost') ? parts[0] : null;
+				const isS3 = host.includes('s3-website');
+    const subdomain = (parts.length > 1 && !isS3 && parts[0] !== 'www' && parts[0] !== 'localhost') ? parts[0] : null;
 
 				// 만약 서브도메인 모드라면 (누가 내 이력서를 보러 온 거라면)
     if (subdomain) {
