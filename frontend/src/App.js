@@ -76,7 +76,7 @@ function App() {
 				if (token) {
 					try {
 						// 벡엔드에 토큰 보내서 유저 정보 가져오기
-						const response = await axios.get("http://localhost:5000/api/auth/me", {
+						const response = await axios.get("http://3.38.246.44:5000/api/auth/me", {
 							headers: { Authorization: `Bearer ${token}` }
 						});
 
@@ -131,7 +131,7 @@ function App() {
 
   const fetchUserData = async (subdomain) => {
     try {
-      const response = await axios.get(`http://localhost:5000/api/user/${subdomain}`);
+      const response = await axios.get(`http://3.38.246.44:5000/api/user/${subdomain}`);
       const user = response.data;
 
       if (user) {
@@ -184,7 +184,7 @@ function App() {
 				uploadData.append("profileImage", file);
 				
 				try {
-const response = await fetch("http://localhost:5000/api/upload", {
+const response = await fetch("http://3.38.246.44:5000/api/upload", {
         method: "POST",
         body: uploadData, 
       });
@@ -335,7 +335,7 @@ const response = await fetch("http://localhost:5000/api/upload", {
 			}
 			const savingToast = toast.loading("데이터 저장 중...");
 
-    fetch("http://localhost:5000/api/save-resume", {
+    fetch("http://3.38.246.44:5000/api/save-resume", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(formData),
