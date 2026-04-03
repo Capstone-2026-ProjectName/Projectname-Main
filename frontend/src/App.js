@@ -124,6 +124,13 @@ function App() {
 				toast.success("로그아웃 되었습니다.");
 			};
 
+			// 다크 모드 토글 및 저장 함수
+  const toggleDarkMode = () => {
+    const newTheme = !isDarkMode;
+    setIsDarkMode(newTheme); // 화면 상태 변경
+    localStorage.setItem("oneresume-theme", newTheme.toString()); // 브라우저에 저장
+  };
+
   const fetchUserData = async (subdomain) => {
     try {
       const response = await axios.get(`http://3.38.246.44:5000/api/user/${subdomain}`);
@@ -377,7 +384,7 @@ const response = await fetch("http://3.38.246.44:5000/api/upload", {
 								{ /*	다크 모드 토글과 PDF 다운로드 버튼 섹션 */}
 								<div className="flex items-center justify-center gap-4 mt-6">
 									<button
-										onClick={() => setIsDarkMode(!isDarkMode)}
+										onClick={toggleDarkMode}
 										// 다크 모드 토글 버튼 스타일링 (상태에 따라 색상 변경)
             className={`font-bold py-2 px-6 rounded-full shadow-lg transition-all active:scale-95 flex items-center gap-2 ${
               isDarkMode 
