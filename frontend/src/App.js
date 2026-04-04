@@ -1,6 +1,6 @@
 // 메인
 import { API_BASE_URL } from "./config";
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
 import ResumeForm from "./components/ResumeForm";
 import ResumePreview from "./components/ResumePreview";
 import Signup from "./components/Signup";
@@ -34,10 +34,10 @@ function App() {
 		const [isLoggedIn, setIsLoggedIn] = useState(false); // 로그인 상태
 		const [authMode, setAuthMode] = useState('login');
   const resumeRef = useRef(); //	PDF 변환 시 참조할 이력서 미리보기 영역
-		const mapUserDataToFields = (user) => {
+		
+		const mapUserDataToFields = useCallback((user) => {
 			const resume = user.resumes?.[0] || {};
 			const eduParts = resume.education ? resume.education.split(" | ") : [];
-
 			return {
 						username: user.username || "",
       email: user.email || "",
@@ -56,7 +56,22 @@ function App() {
         ? resume.projects.map((p, i) => ({ ...p, id: `db-${p.id || i}` }))
         : [{ id: "init-1", name: "", description: "", role: "", techStack: "", period: "" }],
     };
-  };
+  }, []);
+
+		const fetchUserData = useCallback(async (subdomain) => {
+    try {
+      const response = await axios.get(`${API_BASE_URL}/api/user/${subdomain}`);
+      if (response.data) {
+        setFormData(mapUserDataToFields(response.data));
+        setIsSubdomainMode(true);
+      }
+    } catch (err) {
+      console.error("데이터 로드 에러:", err);
+      setIsSubdomainMode(false);
+    } finally {
+      setLoading(false);
+    }
+  }, [mapUserDataToFields]);
 
   useEffect(() => {
 			const checkAuth = async () => {
@@ -69,7 +84,6 @@ function App() {
 				// 만약 서브도메인 모드라면 (누가 내 이력서를 보러 온 거라면)
     if (subdomain) {
       await fetchUserData(subdomain); // 해당 서브도메인으로 사용자 데이터 불러오기
-						setLoading(false);
 						return;
 				}
 
@@ -87,28 +101,21 @@ function App() {
 							if(savedImage) {
 								loadedData.profileImageUrl = savedImage;
 							}
-
 							setFormData(loadedData);
 							setIsLoggedIn(true);
 						}
 					} catch (error) {
 						console.error("세션 만료:", error);
 						localStorage.removeItem("oneresume-token"); //	유효하지 않은 토큰은 제거
-						setIsLoggedIn(false);
 						}
-    } else {
-					setIsLoggedIn(false);
-				}
-
+					}
 				// 테마 설정 불러오기
 				const savedTheme = localStorage.getItem("oneresume-theme");
 				if (savedTheme) setIsDarkMode(savedTheme === "true");
-
 				setLoading(false);
 			};
-
 				checkAuth();
-			}, []);
+			}, [mapUserDataToFields, fetchUserData]);
 
 			useEffect(() => { //페이지 이탈( 새로고침/닫기 ) 방지 알림 로직 
 				const handleBeforeUnload = (e) => {
@@ -118,10 +125,8 @@ function App() {
 						e.returnValue = ""; // 브라우저 표준 경고창 유도
 					}
 				};
-
 				window.addEventListener("beforeunload", handleBeforeUnload);
-				return () => {
-					window.removeEventListener("beforeunload", handleBeforeUnload);
+				return () => { window.removeEventListener("beforeunload", handleBeforeUnload);
 				};
 			}, [isLoggedIn, isSubdomainMode]);
 
@@ -192,42 +197,6 @@ function App() {
     const newTheme = !isDarkMode;
     setIsDarkMode(newTheme); // 화면 상태 변경
     localStorage.setItem("oneresume-theme", newTheme.toString()); // 브라우저에 저장
-  };
-
-  const fetchUserData = async (subdomain) => {
-    try {
-      const response = await axios.get(`${API_BASE_URL}/api/user/${subdomain}`);
-      const user = response.data;
-
-      if (user) {
-        const resume = user.resumes[0] || {};
-        const eduParts = resume.education ? resume.education.split(" | ") : [];
-        
-        setFormData({
-          username: user.username || "",
-          email: user.email || "",
-          subdomain: user.subdomain || "",
-          bio: user.bio || "",
-										profileImageUrl: user.profileImageUrl || "", //	프로필 이미지 URL도 상태에 반영
-          githubUrl: user.githubUrl || "",
-          blogUrl: user.blogUrl || "",
-          resumeTitle: resume.title || "개발자 이력서",
-          school: eduParts[0] || "",
-          major: eduParts[1] || "",
-          gpa: eduParts[2] || "",
-          skills: resume.skills || "",
-          projects: resume.projects?.length > 0
-            ? resume.projects.map((p, i) => ({ ...p, id: `db-${i}` })) //	프로젝트마다 고유 ID 추가 (렌더링 최적화용)
-            : [{ id: "init-1", name: "", description: "", role: "", techStack: "", period: "" }],
-        });
-        setIsSubdomainMode(true);
-      } 
-    } catch (err) {
-      console.error("데이터 로드 에러:", err);
-      setIsSubdomainMode(false);
-    } finally {
-      setLoading(false);
-    }
   };
 
   const handleChange = (e) => {
