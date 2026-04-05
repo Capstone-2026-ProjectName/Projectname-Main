@@ -35,6 +35,10 @@ model User {
   resumes   Resume[]
   createdAt DateTime @default(now()) // 이력서 생성일
   updatedAt DateTime @updatedAt // 이력서 최종 수정일
+
+// 비밀번호 찾기 관련
+  resetPasswordToken String? // 임시 열쇠
+		resetPasswordExpires DateTime? // 열쇠 만료 시간
 }
 
 // 이력서 기본 정보

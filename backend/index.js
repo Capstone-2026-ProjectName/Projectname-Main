@@ -7,6 +7,7 @@ const multer = require('multer');
 const bcrypt	= require('bcrypt');
 const nodemailer = require('nodemailer');
 const jwt = require('jsonwebtoken');
+const crypto = require('crypto');
 
 // Prisma Client 초기화 (Prisma 7에서는 별도 설정 없이도 config.ts를 참조합니다)
 const prisma = new PrismaClient({
@@ -185,6 +186,74 @@ const token = jwt.sign(
 	console.error("로그인 에러:", error);
 	res.status(500).json({ message: "로그인 처리 중 오류가 발생했습니다." });
 }
+});
+
+// 비밀번호 찾기/재설정 로직
+app.post('api/auth/forgot-password', async (req, res) => {
+	try {
+		const { email } = req.body;
+		const user = await prisma.user.findUnique({ where: { email } }); // DB에서 유저 확인
+		// 보안을 위해 존재하지 않는 이메일이라도 "발송되었다"고 응답해 해커의 이메일 수집 방어
+		if (!user) {
+			return res.status(200).json({ message: "재설정 메일이 발송되었습니다"});
+		}
+		// 1. 임시 토큰 생성 (암호화된 난수)
+		const resetToken = crypto.randomBytes(20).toString('hex');
+		// 2. DB에 토큰과 만료시간(1시간 뒤) 저장
+		await prisma.user.update({
+			where: { email },
+			data: {
+				resetPasswordToken: resetToken,
+				resetPasswordExpires: new Date(Date.now() + 3600000) // 현재시간 + 1시간
+			}
+		});
+		// 3. 재설정 링크가 포함된 메일 발송
+		// 주의: 프론트엔드 포트나 주소가 다르면 아래 localhost:3000 부분을 실제 배포 주소로 변경해야 합니다.
+		const resetUrl = `http://localhost:3000/reset-password/${resetToken}`;
+		const mailOptions = {
+			from: process.env.EMAIL_USER,
+			to: user.email, // 해커가 입력한 이메일이 아닌, DB에 등록된 진짜 주인의 이메일로 발송
+			subject: '[OneResume] 비밀번호 재설정 안내',
+			text: `비밀번호를 재설정하려면 다음 링크를 클릭하세요:\n\n${resetUrl}\n\n이 링크는 1시간 동안만 유효합니다`
+		};
+		await transporter.sendMail(mailOptions);
+		console.log(`✅ [비밀번호 재설정 메일 발송] ${email}`);
+		res.status(200).json({ message: "재설정 메일이 발송되었습니다." });
+} catch (error) {
+	res.status(500).json({ message: "서버 오류가 발생했습니다." });
+}
+});
+// 새 비밀번호 저장 (토큰 검증 및 비밀번호 업데이트)
+app.post('/api/auth/reset-password', async (req, res) => {
+	try {
+		const { token, newPassword } = req.body;
+	// 1. 전달받은 토큰이 DB에 존재하며, 아직 만료되지 않았는지(현재 시간보다 미래인지) 확인
+	const user = await prisma.user.findFirst({
+		where: {
+			resetPasswordToken: token,
+			resetPasswordExpires: { gt: new Date() } // gt = greater than (현재 시간 이후)
+		}
+	});
+	if (!user) {
+		return res.status(400).json({ message: "유효하지 않거나 만료된 링크입니다. 다시 시도해주세요." });
+	}
+	// 2. 새 비밀번호 암호화
+	const hashedPassword = await bcrypt.hash(newPassword, 10);
+	// 3. 비밀번호 업데이트 및 사용이 끝난 임시 토큰 초기화(보안)
+	await prisma.user.update({
+		where: { id: user.id },
+		data: {
+			password: hashedPassword,
+			resetPasswordToken: null,
+			resetPasswordExpires: null
+		}
+	});
+	console.log(`✅ [비밀번호 변경 완료] ${user.email}`);
+	res.status(200).json({ message: "비밀번호가 성공적으로 변경되었습니다. 새 비밀번호로 로그인해주세요!" });
+	} catch (error) {
+		console.error("비밀번호 업데이트 에러:", error);
+		res.status(500).json({ message: "비밀번호 변경 중 오류가 발생했습니다." });
+	}
 });
 
 // 내 정보 조회 API (JWT 인증 필요) (토큰 검증 및 새로고침 유지용)
