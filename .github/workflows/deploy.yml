@@ -53,4 +53,4 @@ jobs:
           cd frontend
           npm install
           npm run build
-          aws s3 sync build/ s3://oneresume-storage-parkungjung --delete --region ap-northeast-2
+          aws s3 sync build/ s3://oneresume-storage-parkungjung --delete --exclude "profiles/*" --region ap-northeast-2
