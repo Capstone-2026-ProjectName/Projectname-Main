@@ -8,14 +8,26 @@ function AuthPage({ isDarkMode, toggleDarkMode }) {
   const [authMode, setAuthMode] = useState('login');
   const navigate = useNavigate();
 		const [rememberMe, setRememberMe] = useState(false); // 로그인 유지 체크박스 상태 (로그인 컴포넌트로 전달)
+		const [isChecking, setIsChecking] = useState(true);
 
   useEffect(() => {
     // 이미 로그인된 토큰이 있다면 편집 페이지로 강제 이동
     const token = localStorage.getItem("oneresume-token") || sessionStorage.getItem("oneresume-token");
     if (token) {
       navigate('/edit');
-    }
+    } else {
+					setIsChecking(false);
+				}
 			}, [navigate]);
+
+			if (isChecking) {
+				return (
+					<div className={`min-h-screen flex items-center justify-center ${isDarkMode ? 'bg-slate-900' : 'bg-slate-50'}`}>
+						{/* 간단한 로딩 텍스트나 빈 화면 */}
+						<div className="animate-pulse text-slate-500 font-bold text-xl">OneResume Loading...</div>
+					</div>
+				);
+			}
 
   // 가입/로그인 성공 시 호출되는 콜백
   const handleAuthSuccess = (data) => {
