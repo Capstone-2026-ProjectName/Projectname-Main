@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import { Toaster } from "react-hot-toast";
+import { Toaster, toast } from "react-hot-toast";
+import axios from 'axios';
 
 // 페이지 컴포넌트 불러오기
 import AuthPage from "./pages/AuthPage";
@@ -15,6 +16,25 @@ function App() {
   const parts = host.split('.');
   const isS3 = host.includes('s3-website');
   const subdomain = (parts.length > 1 && !isS3 && parts[0] !== 'www' && parts[0] !== 'localhost') ? parts[0] : null;
+
+		// 컴포넌트가 처음 로드될 때 딱 한 번 실행
+  useEffect(() => {
+    const interceptor = axios.interceptors.response.use(
+      (response) => response, // 성공하면 그냥 통과
+      (error) => {
+        // 에러가 났는데 그게 429 요청 초과 라면?
+        if (error.response && error.response.status === 429) {
+          toast.error(error.response.data.message || "요청이 너무 많습니다. 1분 후 다시 시도해주세요.", {
+            id: 'rate-limit-error', // 중복 토스트 방지용 ID
+          });
+        }
+        return Promise.reject(error);
+      }
+    );
+
+    // 컴포넌트가 사라질 때 인터셉터 제거 (메모리 관리)
+    return () => axios.interceptors.response.eject(interceptor);
+  }, []);
 
   // 전역 다크모드 상태 관리
   const [isDarkMode, setIsDarkMode] = useState(false);
