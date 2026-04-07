@@ -19,13 +19,14 @@ app.use(helmet({
 
 // 2. CORS 설정
 app.use(cors({
+  origin: process.env.FRONTEND_URL || 'http://localhost:3000',
   credentials: true
 }));
 
 // [Security] Rate Limiting 설정
 const limiter = rateLimit({
   windowMs: 1 * 60 * 1000, // 1분
-  max: 30, // 1분당 최대 요청 횟수
+  max: 20, // 1분당 최대 요청 횟수
 		handler: (req, res) => {
     res.setHeader('Access-Control-Allow-Origin', allowedOrigin);
     res.setHeader('Access-Control-Allow-Credentials', 'true'); // 인증 정보 포함 시 필수
@@ -39,10 +40,6 @@ const limiter = rateLimit({
 
 // 모든 요청에 대해 리미터 적용
 app.use(limiter);
-
-// 미들웨어 설정
-app.use(cors());
-app.use(express.json());
 
 // 분리한 라우터들을 메인 서버에 연결해주는 길 안내 표지판
 app.use('/api/auth', authRoutes);
