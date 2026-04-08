@@ -1,3 +1,6 @@
-// 실서버 IP 주소를 한곳에서 관리합니다.
-// 나중에 도메인을 연결하면 이 부분만 'http://도메인:5000'으로 바꾸면 끝
-export const API_BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:5000";
+// 로컬 환경인지 배포 환경인지에 따라 API 주소를 자동으로 결정합니다.
+const isProduction = window.location.hostname !== "localhost";
+
+export const API_BASE_URL = isProduction 
+  ? "http://3.38.246.44:5000" 
+  : "http://localhost:5000";

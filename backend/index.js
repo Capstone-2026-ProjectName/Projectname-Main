@@ -7,7 +7,11 @@ const prisma = require('./src/config/prisma');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 
-const allowedOrigin = process.env.FRONTEND_URL || 'http://localhost:3000';
+const allowedOrigins = [
+  process.env.FRONTEND_URL || 'http://localhost:3000',
+  process.env.S3_BUCKET_NAME ? `https://${process.env.S3_BUCKET_NAME}.s3.amazonaws.com` : null,
+  process.env.S3_BUCKET_NAME && process.env.AWS_REGION ? `http://${process.env.S3_BUCKET_NAME}.s3-website-${process.env.AWS_REGION}.amazonaws.com` : null
+].filter(Boolean);
 
 const app = express();
 const port = 5000;
@@ -22,16 +26,37 @@ app.use(helmet({
 
 // 2. CORS 설정
 app.use(cors({
-  origin: allowedOrigin,
+  origin: function (origin, callback) {
+    // allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    
+    const isAllowed = allowedOrigins.some(allowed => origin === allowed || (allowed.includes('amazonaws.com') && origin.endsWith('amazonaws.com')));
+    
+    if (isAllowed) {
+      callback(null, true);
+    } else {
+      console.log('CORS blocked for origin:', origin);
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true
 }));
+
+const getSafeAllowedOrigin = (req) => {
+    const origin = req.headers.origin;
+    if (origin && (allowedOrigins.includes(origin) || origin.endsWith('amazonaws.com'))) {
+        return origin;
+    }
+    return allowedOrigins[0];
+};
 
 // [Security] Rate Limiting 설정
 const limiter = rateLimit({
   windowMs: 1 * 60 * 1000, // 1분
   max: 20, // 1분당 최대 요청 횟수
 		handler: (req, res) => {
-    res.setHeader('Access-Control-Allow-Origin', allowedOrigin);
+    const origin = getSafeAllowedOrigin(req);
+    res.setHeader('Access-Control-Allow-Origin', origin);
     res.setHeader('Access-Control-Allow-Credentials', 'true'); // 인증 정보 포함 시 필수
     res.status(429).json({
       message: "너무 많은 요청이 감지되었습니다. 1분 후 다시 시도해주세요."
