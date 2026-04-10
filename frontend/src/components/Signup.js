@@ -55,6 +55,13 @@ const getInputBorderClass = (value, isValidSection) => {
     try {
       await axios.post(`${API_BASE_URL}/api/auth/send-code`, { email });
       toast.success("메일함을 확인해주세요", { id: loading });
+      
+      // [UX 개선] 이메일 입력 시 서브도메인 자동 추천 (아이디 부분만 추출)
+      if (!subdomain && email.includes('@')) {
+        const suggested = email.split('@')[0].toLowerCase().replace(/[^a-z0-9]/g, '');
+        setSubdomain(suggested);
+      }
+      
       setStep(1);
     } catch (err) {
       toast.error(err.response?.data?.message || "발송 실패", { id: loading });
@@ -71,8 +78,23 @@ const getInputBorderClass = (value, isValidSection) => {
     }
   };
 
+  // 실시간 서브도메인 유효성 검사 로직
+  const getSubdomainError = (val) => {
+    if (!val) return null;
+    if (!/^[a-z0-9]+$/.test(val)) return "영문 소문자와 숫자만 사용 가능합니다.";
+    const forbidden = ['admin', 'api', 'www', 'mail', 'master', 'root', 'help', 'login', 'dev', 'test', 'support'];
+    if (forbidden.includes(val.toLowerCase())) return "사용할 수 없는 도메인입니다.";
+    if (val.length < 3) return "3자 이상 입력해주세요.";
+    return null;
+  };
+
   const handleFinalSignup = async () => {
-			// 가입 전 최종 보안 체크
+    const subError = getSubdomainError(subdomain);
+    if (subError) {
+      toast.error(subError);
+      return;
+    }
+    // 가입 전 최종 보안 체크
 			if (!PWD_REGEX.test(password)) {
 				toast.error("비밀번호 보안 정책을 확인해주세요.");
 				return;
@@ -87,21 +109,21 @@ const getInputBorderClass = (value, isValidSection) => {
     }
   };
 
-  const inputClass = `w-full px-4 py-3 rounded-xl border outline-none transition-all focus:ring-2 focus:ring-blue-500 ${
+  const inputClass = `w-full px-5 py-4 rounded-2xl border outline-none transition-all focus:ring-2 focus:ring-blue-500 text-lg ${
     isDarkMode 
       ? 'bg-slate-800 border-slate-700 text-white placeholder-slate-500' 
       : 'bg-white border-slate-200 text-slate-800'
   }`;
 
   return (
-    <div className={`max-w-md w-full p-8 rounded-3xl shadow-2xl transition-all duration-300 border ${
+    <div className={`max-w-[480px] w-full p-10 rounded-[40px] shadow-2xl transition-all duration-300 border ${
       isDarkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-100'
     }`}>
-      <h2 className={`text-2xl font-black mb-8 text-center ${isDarkMode ? 'text-white' : 'text-slate-800'}`}>OneResume 가입</h2>
+      <h2 className={`text-3xl font-black mb-10 text-center ${isDarkMode ? 'text-white' : 'text-slate-800'}`}>OneResume 가입</h2>
 
-      <div className="space-y-5">
+      <div className="space-y-6">
         <div>
-          <label className={`block text-sm font-bold mb-2 ml-1 ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>이메일</label>
+          <label className={`block text-base font-bold mb-2.5 ml-1 ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>이메일</label>
           <input 
             type="email" 
             value={email}
@@ -113,15 +135,15 @@ const getInputBorderClass = (value, isValidSection) => {
         </div>
 
         {step === 0 && (
-          <button onClick={handleSendCode} className="w-full bg-blue-600 text-white py-4 rounded-xl font-bold hover:bg-blue-700 transition-all shadow-lg active:scale-95">
+          <button onClick={handleSendCode} className="w-full bg-blue-600 text-white py-4.5 rounded-2xl font-bold text-lg hover:bg-blue-700 transition-all shadow-lg active:scale-95">
             인증번호 받기
           </button>
         )}
 
         {step === 1 && (
-          <div className="animate-fade-in space-y-3">
-            <label className={`block text-sm font-bold mb-1 ml-1 ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>인증번호 6자리</label>
-            <div className="flex gap-2">
+          <div className="animate-fade-in space-y-4">
+            <label className={`block text-base font-bold mb-1.5 ml-1 ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>인증번호 6자리</label>
+            <div className="flex gap-3">
               <input 
                 type="text" 
                 value={code}
@@ -129,7 +151,7 @@ const getInputBorderClass = (value, isValidSection) => {
                 className={inputClass}
                 placeholder="000000"
               />
-              <button onClick={handleVerifyCode} className={`px-6 py-3 rounded-xl font-bold transition-all whitespace-nowrap ${isDarkMode ? 'bg-slate-700 text-white hover:bg-slate-600' : 'bg-slate-800 text-white hover:bg-black'}`}>
+              <button onClick={handleVerifyCode} className={`px-8 py-4 rounded-2xl font-bold text-base transition-all whitespace-nowrap ${isDarkMode ? 'bg-slate-700 text-white hover:bg-slate-600' : 'bg-slate-800 text-white hover:bg-black'}`}>
                 확인
               </button>
             </div>
@@ -137,56 +159,118 @@ const getInputBorderClass = (value, isValidSection) => {
         )}
 
         {step === 2 && (
-          <div className="space-y-5 animate-fade-in">
+          <div className="space-y-6 animate-fade-in">
             <div>
-              <label className={`block text-sm font-bold mb-2 ml-1 ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>비밀번호</label>
+              <label className={`block text-base font-bold mb-2.5 ml-1 ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>비밀번호</label>
               <input 
                 type="password" 
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className={getInputBorderClass(password, validations.length && validations.upper && validations.number && validations.special)}
+                className={getInputBorderClass(password, validations.length && validations.upper && validations.number && validations.special).replace('px-4 py-3', 'px-5 py-4').replace('text-slate-800', 'text-lg text-slate-800').replace('rounded-xl', 'rounded-2xl')}
                 placeholder="••••••••"
               />
 														{ /* 비밀번호 인디케이터 UI */ }
-														<div className="grid grid-cols-2 gap-x-2 gap-y-2 mt-3 px-1">
-															<ValidationItem isValid={validations.length} text="8자 이상" isDirty={password.length > 0} />
-															<ValidationItem isValid={validations.upper} text="대문자 포함" isDirty={password.length > 0} />
-															<ValidationItem isValid={validations.number} text="숫자 포함" isDirty={password.length > 0} /> 
-															<ValidationItem isValid={validations.special} text="특수문자 포함" isDirty={password.length > 0} /> 
+														<div className="grid grid-cols-2 gap-x-3 gap-y-2.5 mt-4 px-1">
+															<ValidationItem 
+                                isValid={validations.length} 
+                                text={password.length > 0 && !validations.length ? "8자 미만" : "8자 이상"} 
+                                isDirty={password.length > 0} 
+                              />
+															<ValidationItem 
+                                isValid={validations.upper} 
+                                text={password.length > 0 && !validations.upper ? "대문자 미포함" : "대문자 포함"} 
+                                isDirty={password.length > 0} 
+                              />
+															<ValidationItem 
+                                isValid={validations.number} 
+                                text={password.length > 0 && !validations.number ? "숫자 미포함" : "숫자 포함"} 
+                                isDirty={password.length > 0} 
+                              /> 
+															<ValidationItem 
+                                isValid={validations.special} 
+                                text={password.length > 0 && !validations.special ? "특수문자 미포함" : "특수문자 포함"} 
+                                isDirty={password.length > 0} 
+                              /> 
             </div>
 										</div>
             <div>
-													<label className={`block text-sm font-bold mb-2 ml-1 ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>비밀번호 확인</label>
+													<label className={`block text-base font-bold mb-2.5 ml-1 ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>비밀번호 확인</label>
                 <input 
                   type="password" 
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
-																			className={getInputBorderClass(confirmPassword, validations.match)}
+																			className={getInputBorderClass(confirmPassword, validations.match).replace('px-4 py-3', 'px-5 py-4').replace('text-slate-800', 'text-lg text-slate-800').replace('rounded-xl', 'rounded-2xl')}
                   placeholder="••••••••"
                 />
-																<div className="mt-2 mt-1">
-																	<ValidationItem isValid={validations.match} text="비밀번호 일치" isDirty={confirmPassword.length > 0} />
+																<div className="mt-2.5 mt-1">
+																	<ValidationItem 
+                                    isValid={validations.match} 
+                                    text={confirmPassword.length > 0 && !validations.match ? "비밀번호 불일치" : "비밀번호 일치"} 
+                                    isDirty={confirmPassword.length > 0} 
+                                  />
 																	</div>
 															</div>
 													<div>
-														<label className={`block text-sm font-bold mb-2 ml-1 ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>개인 도메인</label>
+														<div className="flex items-center gap-2 mb-2.5 ml-1">
+                              <label className={`text-base font-bold ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>개인 도메인</label>
+                              
+                              {/* 툴팁 아이콘 */}
+                              <div className="group relative flex items-center">
+                                <div className={`w-4 h-4 rounded-full border flex items-center justify-center text-[11px] font-serif font-bold italic cursor-help transition-colors ${
+                                  isDarkMode ? 'border-slate-600 text-slate-500 group-hover:text-blue-400 group-hover:border-blue-400' : 'border-slate-300 text-slate-400 group-hover:text-blue-500 group-hover:border-blue-500'
+                                }`}>
+                                  i
+                                </div>
+                                
+                                {/* 실제 툴팁 박스 */}
+                                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-56 p-3 bg-slate-800 text-white text-xs rounded-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 shadow-xl pointer-events-none">
+                                  <p className="leading-relaxed text-center font-medium">
+                                    나만의 고유한 웹 주소입니다. <br/>
+                                    가입 후 이 주소를 통해 누구나 내 이력서를 볼 수 있습니다.
+                                  </p>
+                                  {/* 화살표 */}
+                                  <div className="absolute top-full left-1/2 -translate-x-1/2 border-8 border-transparent border-t-slate-800"></div>
+                                </div>
+                              </div>
+                            </div>
+
 														<div className="flex items-center">
 															<input
 															type="text"
 															value={subdomain}
 															onChange={(e) => setSubdomain(e.target.value)}
-															className={`flex-1 p-3 rounded-l-xl border border-r-0 focus:outline-none focus:ring-2 transition-all ${inputClass}`}
+															className={`flex-1 p-4 rounded-l-2xl border border-r-0 focus:outline-none focus:ring-2 transition-all text-lg ${
+                                isDarkMode 
+                                  ? 'bg-slate-800 border-slate-700 text-white placeholder-slate-500' 
+                                  : 'bg-white border-slate-200 text-slate-800'
+                              }`}
 															placeholder="my-domain"
 															/>
-															<span className={`p-3 rounded-r-xl font-bold border border-l-0 ${isDarkMode ? 'bg-slate-700 border-slate-700 text-slate-400' : 'bg-slate-100 border-slate-200 text-slate-500'}`}>
+															<span className={`p-4 rounded-r-2xl font-bold text-lg border border-l-0 ${isDarkMode ? 'bg-slate-700 border-slate-700 text-slate-400' : 'bg-slate-100 border-slate-200 text-slate-500'}`}>
 																.oneresume.com
                 </span>
+              </div>
+              {/* 실시간 유효성 피드백 및 주소 미리보기 */}
+              <div className="mt-3 ml-1 min-h-[24px]">
+                {getSubdomainError(subdomain) ? (
+                  <p className="text-xs font-bold text-red-400 uppercase tracking-tighter animate-pulse">
+                    ⚠️ {getSubdomainError(subdomain)}
+                  </p>
+                ) : subdomain ? (
+                  <p className="text-xs font-bold text-blue-500 dark:text-blue-400 tracking-tighter">
+                    ✨ 내 주소: <span className="underline font-semibold">{subdomain.toLowerCase()}.oneresume.com</span>
+                  </p>
+                ) : (
+                  <p className={`text-xs font-medium ${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`}>
+                    나만의 고유한 이력서 주소를 설정하세요.
+                  </p>
+                )}
               </div>
             </div>
             <button 
 												onClick={handleFinalSignup}
 												disabled={!Object.values(validations).every(v => v)} // 보안 미충족 시 비활성화
-												className={`w-full py-4 rounded-xl font-black text-lg shadow-xl transition-all active:scale-95 ${
+												className={`w-full py-5 rounded-2xl font-black text-xl shadow-xl transition-all active:scale-95 ${
 												Object.values(validations).every(v => v)
 												? 'bg-emerald-500 text-white hover:bg-emerald-600'
 												: 'bg-slate-300 text-slate-500 cursor-not-allowed opacity-50'
@@ -198,8 +282,8 @@ const getInputBorderClass = (value, isValidSection) => {
         )}
       </div>
 
-      <div className="mt-8 text-center border-t pt-6 border-slate-700/30">
-        <button onClick={onSwitch} className={`text-sm font-medium ${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`}>
+      <div className="mt-10 text-center border-t pt-8 border-slate-700/30">
+        <button onClick={onSwitch} className={`text-base font-medium ${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`}>
           이미 계정이 있으신가요? <span className="text-blue-500 hover:underline font-bold ml-1">로그인</span>
         </button>
       </div>

@@ -71,6 +71,14 @@ exports.signup = async (req, res) => {
             return res.status(400).json({ message: "이메일 인증을 먼저 완료해주세요." });
         }
 
+        // 서브도메인 예약어(금지어) 차단 로직
+        const forbiddenWords = ['admin', 'api', 'www', 'mail', 'master', 'root', 'help', 'login', 'dev', 'test', 'support'];
+        if (forbiddenWords.includes(subdomain.toLowerCase())) {
+            return res.status(400).json({
+                message: `'${subdomain}'은(는) 시스템 예약어로 사용할 수 없습니다.`
+            });
+        }
+
         // 중복 체크
         const existingUser = await prisma.user.findFirst({
             where: { OR: [{ email }, { subdomain }] }
