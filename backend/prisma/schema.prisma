@@ -23,6 +23,9 @@ model User {
 		profileImageUrl String? // 프로필 사진, S3 URL 저장용
 		githubUrl				String?  // 깃허브 링크 
 		blogUrl						String?		// 블로그 링크
+		age        					Int?     // 나이
+		phone      					String?  // 전화번호
+		isProfileComplete Boolean @default(false) // 온보딩 완료 여부
 
 // 이메일 인증 관련
 		isVerified			Boolean		@default(false) // 인증 완료 여부

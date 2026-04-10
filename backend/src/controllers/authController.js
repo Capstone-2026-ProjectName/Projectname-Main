@@ -277,7 +277,9 @@ exports.setupProfile = async (req, res) => {
 
 		const updateData = {
 			username: username,
-			// Prisma 스키마 필드명에 맞춰 수정하세요 (예: age, phoneNumber 등)
+			age: age ? parseInt(age) : null,
+			phone: phone || null,
+			isProfileComplete: true, // 프로필 설정 완료!
 			updatedAt: new Date(),
 	};
 	// S3에 파일이 업로드되었다면 URL 저장
