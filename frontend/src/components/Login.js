@@ -22,7 +22,13 @@ const Login = ({ onSuccess, onSwitch, isDarkMode, rememberMe, setRememberMe }) =
       if (onSuccess) {
         onSuccess(response.data);
       }
-      navigate('/setup-profile');
+
+      // 프로필 설정 완료 여부에 따른 리다이렉트 분기
+      if (user.isProfileComplete) {
+        navigate('/edit');
+      } else {
+        navigate('/setup-profile');
+      }
     } catch (err) {
       toast.error(err.response?.data?.message || "로그인 실패", { id: loading });
     }
