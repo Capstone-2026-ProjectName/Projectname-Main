@@ -12,16 +12,42 @@ const ResumeForm = ({
   handleGithubSync,
   handleDragEnd,
   handleImageUpload,
+  auditContent, // AI 분석 함수 추가
   isDarkMode,
-  isCompact = false // 컴팩트 모드 추가
+  isCompact = false
 }) => {
-  // 현재 활성화된 탭 상태 (기본값: 'basic')
+  // 현재 활성화된 탭 상태
   const [activeTab, setActiveTab] = useState('basic');
   const [isAddressOpen, setIsAddressOpen] = useState(false);
   const [schoolResults, setSchoolResults] = useState([]);
   const [majorResults, setMajorResults] = useState([]);
   const [showSchoolList, setShowSchoolList] = useState(false);
   const [showMajorList, setShowMajorList] = useState(false);
+
+  // AI 피드백 모달 관련 상태
+  const [aiFeedback, setAiFeedback] = useState(null);
+  const [isAiModalOpen, setIsAiModalOpen] = useState(false);
+  const [isAiLoading, setIsAiLoading] = useState(false);
+
+  const handleAiAudit = async (fieldName, content, context) => {
+    setIsAiLoading(true);
+    const result = await auditContent(fieldName, content, context);
+    if (result) {
+      setAiFeedback({ ...result, targetField: fieldName });
+      setIsAiModalOpen(true);
+    }
+    setIsAiLoading(false);
+  };
+
+  const applyAiRefinement = (text) => {
+    if (aiFeedback.targetField === 'bio') {
+      handleChange({ target: { name: 'bio', value: text } });
+    } else if (aiFeedback.targetField.startsWith('project-')) {
+      const index = parseInt(aiFeedback.targetField.split('-')[1]);
+      handleProjectChange(index, { target: { name: 'description', value: text } });
+    }
+    setIsAiModalOpen(false);
+  };
 
   const handleAddressComplete = (data) => {
     let fullAddress = data.address;
@@ -224,8 +250,24 @@ const ResumeForm = ({
                 <span className={`px-5 font-bold text-sm border-2 border-l-0 ${isDarkMode ? 'bg-zinc-700 border-zinc-600 text-zinc-400' : 'bg-gray-200 border-transparent text-zinc-500'} ${isCompact ? 'py-2.5' : 'py-3.5'}`}>.oneresume.com</span>
               </div>
             </div>
-            <div className="flex flex-col gap-1.5">
-              <label className={`pl-1 text-[12px] font-black uppercase tracking-wider ${theme.labelText}`}>한 줄 소개</label>
+            <div className="flex flex-col gap-1.5 relative group">
+              <div className="flex items-center justify-between pl-1">
+                <label className={`text-[12px] font-black uppercase tracking-wider ${theme.labelText}`}>한 줄 소개</label>
+                <button 
+                  type="button" 
+                  onClick={() => handleAiAudit('bio', formData.bio)}
+                  disabled={isAiLoading}
+                  className={`flex items-center gap-2 px-4 py-1.5 rounded-xl text-[11px] font-bold transition-all duration-300 ${
+                    isAiLoading 
+                      ? 'bg-zinc-100 text-zinc-400 cursor-not-allowed' 
+                      : 'bg-zinc-900 dark:bg-white dark:text-zinc-900 text-white hover:shadow-lg hover:-translate-y-0.5 active:scale-95'
+                  }`}
+                >
+                  {isAiLoading ? (
+                    <div className="w-3 h-3 border-2 border-current/30 border-t-current rounded-full animate-spin"></div>
+                  ) : 'AI 분석'}
+                </button>
+              </div>
               <textarea name="bio" value={formData.bio} onChange={handleChange} rows={isCompact ? "2" : "3"} placeholder="나를 가장 잘 표현하는 문장을 적어주세요." className={`w-full px-5 border-2 rounded-2xl outline-none transition-all focus:ring-2 resize-none ${theme.inputBg} ${isCompact ? 'py-2.5 text-sm' : 'py-3.5'}`} />
             </div>
           </div>
@@ -362,6 +404,25 @@ const ResumeForm = ({
                               <input type="text" name="name" value={project.name} onChange={(e) => handleProjectChange(index, e)} placeholder="이름" className={`w-full px-4 py-2 border rounded-xl outline-none transition-all focus:ring-2 text-xs ${theme.innerInputBg}`} />
                               <input type="text" name="period" value={project.period} onChange={(e) => handleProjectChange(index, e)} placeholder="기간" className={`w-full px-4 py-2 border rounded-xl outline-none transition-all focus:ring-2 text-xs ${theme.innerInputBg}`} />
                             </div>
+                            <div className="flex items-center justify-between mb-2">
+                              <label className={`text-[10px] font-black uppercase tracking-wider ${theme.labelText}`}>상세 설명</label>
+                              <button 
+                                type="button" 
+                                onClick={() => handleAiAudit(
+                                  `project-${index}`, 
+                                  project.description, 
+                                  `프로젝트명: ${project.name}, 역할: ${project.role}, 기술스택: ${project.techStack}, GitHub: ${project.githubUrl || '없음'}`
+                                )}
+                                disabled={isAiLoading}
+                                className={`px-3 py-1 rounded-lg text-[9px] font-bold transition-all duration-300 ${
+                                  isAiLoading 
+                                    ? 'bg-zinc-100 text-zinc-400 cursor-not-allowed' 
+                                    : 'bg-zinc-900 dark:bg-white dark:text-zinc-900 text-white hover:shadow-md hover:-translate-y-0.5'
+                                }`}
+                              >
+                                {isAiLoading ? '분석 중...' : 'AI 분석'}
+                              </button>
+                            </div>
                             <textarea name="description" value={project.description} onChange={(e) => handleProjectChange(index, e)} rows={isCompact ? "2" : "3"} placeholder="상세 설명" className={`w-full px-4 py-2 border rounded-xl outline-none transition-all focus:ring-2 text-xs resize-none ${theme.innerInputBg}`} />
                             <div className="flex justify-end mt-2">
                               <button type="button" onClick={() => removeProject(index)} className="text-red-500 text-[9px] font-bold uppercase tracking-tighter opacity-60 hover:opacity-100">✕ Remove</button>
@@ -390,6 +451,98 @@ const ResumeForm = ({
           </button>
         </form>
       </div>
+
+      {/* 4. AI 피드백 모달 */}
+      {isAiModalOpen && aiFeedback && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/60 backdrop-blur-md animate-fade-in">
+          <div className={`relative w-full max-w-2xl rounded-[40px] overflow-hidden shadow-2xl border ${isDarkMode ? 'bg-zinc-900 border-zinc-700' : 'bg-white border-white'}`}>
+            
+            {/* 모달 헤더 */}
+            <div className="p-8 border-b border-zinc-700/10 flex items-center justify-between bg-zinc-900">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 bg-white/10 rounded-2xl flex items-center justify-center overflow-hidden">
+                  <svg viewBox="0 0 24 24" className="w-8 h-8 fill-blue-400">
+                    <path d="M12 2L14.5 9.5L22 12L14.5 14.5L12 22L9.5 14.5L2 12L9.5 9.5L12 2Z" />
+                  </svg>
+                </div>
+                <div>
+                  <h3 className="text-xl font-black text-white tracking-tight">OneResume AI 컨설팅</h3>
+                  <p className="text-xs font-bold text-white/50 uppercase tracking-widest">Powered by Gemini</p>
+                </div>
+              </div>
+              <button onClick={() => setIsAiModalOpen(false)} className="w-10 h-10 rounded-full flex items-center justify-center text-white/40 hover:text-white hover:bg-white/10 transition-all">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            {/* 모달 본문 */}
+            <div className="p-8 max-h-[65vh] overflow-y-auto custom-scrollbar space-y-10">
+              {/* 전문가 총평 -> AI 커리어 인사이트 */}
+              <section className="space-y-4">
+                <div className="flex items-center gap-2">
+                  <div className="w-1.5 h-4 bg-blue-600 rounded-full"></div>
+                  <h4 className={`text-sm font-black ${isDarkMode ? 'text-zinc-100' : 'text-zinc-800'}`}>AI 커리어 인사이트</h4>
+                </div>
+                <div className={`p-6 rounded-[24px] font-medium leading-relaxed text-sm ${isDarkMode ? 'bg-zinc-800/50 text-zinc-300' : 'bg-gray-50 text-zinc-600'}`}>
+                  {aiFeedback.feedback}
+                </div>
+              </section>
+
+              {/* 추천 문장 (Refined Text) */}
+              <section className="space-y-4">
+                <div className="flex items-center gap-2">
+                  <div className="w-1.5 h-4 bg-emerald-500 rounded-full"></div>
+                  <h4 className={`text-sm font-black ${isDarkMode ? 'text-zinc-100' : 'text-zinc-800'}`}>추천 드리는 완성 문장</h4>
+                </div>
+                <div className={`flex flex-col gap-4 p-7 rounded-[32px] border-2 transition-all duration-500 ${isDarkMode ? 'bg-blue-950/20 border-blue-500/30 text-blue-100 shadow-[0_0_30px_-10px_rgba(59,130,246,0.3)]' : 'bg-blue-50/50 border-blue-100 text-blue-900 shadow-xl shadow-blue-500/5'}`}>
+                  <p className="font-bold text-base lg:text-lg leading-relaxed italic text-center py-2">"{aiFeedback.refinedText}"</p>
+                  <div className="flex justify-center">
+                    <button 
+                      onClick={() => applyAiRefinement(aiFeedback.refinedText)}
+                      className="px-6 py-3 bg-blue-600 text-white rounded-2xl shadow-xl flex items-center gap-3 hover:scale-105 hover:bg-blue-700 active:scale-95 transition-all group/btn"
+                    >
+                      <span className="text-xs font-black">이 추천 문장으로 즉시 변경하기</span>
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+              </section>
+
+              {/* 보완을 위한 질문 - 가독성 강화 */}
+              {aiFeedback.questions && aiFeedback.questions.length > 0 && (
+                <section className="space-y-4 pb-6">
+                  <div className="flex items-center gap-2">
+                    <div className="w-1.5 h-4 bg-amber-500 rounded-full"></div>
+                    <h4 className={`text-sm font-black ${isDarkMode ? 'text-zinc-100' : 'text-zinc-800'}`}>내용을 더 풍성하게 만드는 팁</h4>
+                  </div>
+                  <div className="grid gap-4">
+                    {aiFeedback.questions.map((q, i) => (
+                      <div key={i} className={`flex items-start gap-5 p-6 rounded-3xl transition-all border ${isDarkMode ? 'bg-zinc-800/30 border-zinc-700/50 text-zinc-300' : 'bg-white border-zinc-100 shadow-sm text-zinc-700'}`}>
+                        <span className="flex-shrink-0 w-8 h-8 rounded-xl bg-blue-600 text-white flex items-center justify-center text-[12px] font-black shadow-lg shadow-blue-600/20">Q{i+1}</span>
+                        <p className="text-[14px] font-bold leading-relaxed pt-1">{q}</p>
+                      </div>
+                    ))}
+                  </div>
+                </section>
+              )}
+            </div>
+
+            {/* 모달 푸터 */}
+            <div className={`p-6 border-t ${isDarkMode ? 'border-zinc-800' : 'border-gray-100'} flex justify-end`}>
+              <button 
+                onClick={() => setIsAiModalOpen(false)}
+                className={`px-8 py-3 rounded-2xl text-xs font-black transition-all ${isDarkMode ? 'text-zinc-500 hover:text-white hover:bg-white/5' : 'text-zinc-400 hover:text-zinc-800 hover:bg-gray-100'}`}
+              >
+                닫기
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
