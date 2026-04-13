@@ -77,8 +77,10 @@ function EditPage({ isDarkMode, toggleDarkMode }) {
     addProject,
     removeProject,
     handleDragEnd,
-    handleSubmit,
-  } = useResume();
+    auditContent, // AI 함수 가져오기
+    handleSubmit
+    } = useResume();
+
 
   const getPageIds = () => {
     const ids = [1];
@@ -245,6 +247,7 @@ function EditPage({ isDarkMode, toggleDarkMode }) {
               handleGithubSync={handleGithubSync}
               handleDragEnd={handleDragEnd}
               handleImageUpload={handleImageUpload}
+              auditContent={auditContent} // AI 함수 전달
               isDarkMode={isDarkMode}
               isCompact={isLaptop || formZoom < 1.0}
             />

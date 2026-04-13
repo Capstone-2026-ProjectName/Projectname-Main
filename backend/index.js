@@ -3,6 +3,7 @@ const express = require('express');
 const cors = require('cors');
 const authRoutes = require('./src/routes/auth');
 const resumeRoutes = require('./src/routes/resume');
+const aiRoutes = require('./src/routes/ai');
 const prisma = require('./src/config/prisma');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
@@ -80,6 +81,7 @@ app.use(express.json());
 // 분리한 라우터들을 메인 서버에 연결해주는 길 안내 표지판
 app.use('/api/auth', authRoutes);
 app.use('/api/resume', resumeRoutes);
+app.use('/api/ai', aiRoutes);
 
 // 서버 실행 및 데이터베이스 연결 확인
 app.listen(port, '0.0.0.0',  async () => {

@@ -44,6 +44,7 @@ const useResume = () => {
       age: user.age || "",
       phone: user.phone || "",
       address: user.address || "",
+      addressDetail: user.addressDetail || "", // 누락된 상세주소 필드 추가
       gender: user.gender || "",
       useInternationalAge: user.useInternationalAge || false,
       resumeTitle: resume.title || "개발자 이력서",
@@ -242,6 +243,31 @@ const useResume = () => {
     setFormData({ ...formData, projects: items });
   };
 
+  // AI 첨삭 요청 함수
+  const auditContent = async (fieldName, content, context = "") => {
+    if (!content || content.trim().length < 5) {
+      toast.error("분석할 내용을 조금 더 자세히 적어주세요! (최소 5자)");
+      return null;
+    }
+
+    const auditToast = toast.loading("AI가 내용을 정교하게 분석 중입니다...");
+
+    try {
+      const response = await axios.post(`${API_BASE_URL}/api/ai/audit`, {
+        fieldName,
+        content,
+        context
+      });
+
+      toast.success("AI 분석이 완료되었습니다!", { id: auditToast });
+      return response.data;
+    } catch (error) {
+      console.error("AI Audit Error:", error);
+      toast.error(error.response?.data?.message || "AI 분석 중 오류가 발생했습니다.", { id: auditToast });
+      return null;
+    }
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
     const token = localStorage.getItem("oneresume-token");
@@ -291,6 +317,7 @@ const useResume = () => {
     addProject,
     removeProject,
     handleDragEnd,
+    auditContent,
     handleSubmit,
   };
 };
