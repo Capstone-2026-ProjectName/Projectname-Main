@@ -48,11 +48,13 @@ exports.kakaoCallback = async (req, res) => {
         });
 
         if (!user) {
-            // 신규 유저: 임시 서브도메인 부여 및 isProfileComplete: false 설정
+            // 신규 유저: 닉네임 중복 방지를 위해 socialId 일부를 결합하여 고유한 username 생성
+            const uniqueUsername = `${nickname}_${socialId.slice(-4)}`;
+            
             user = await prisma.user.create({
                 data: {
                     email,
-                    username: nickname,
+                    username: uniqueUsername,
                     socialId,
                     provider: 'KAKAO',
                     subdomain: `kakao-${socialId.slice(-5)}${Math.floor(Math.random() * 1000)}`, // 중복 방지용 임시 도메인
