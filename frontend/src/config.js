@@ -2,5 +2,5 @@
 const isProduction = window.location.hostname !== "localhost";
 
 export const API_BASE_URL = isProduction 
-  ? "http://3.38.246.44:5000" 
+  ? "https://api.oneresume.kr" 
   : "http://localhost:5000";

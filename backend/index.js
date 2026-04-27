@@ -12,6 +12,9 @@ const allowedOrigins = [
   'http://localhost:3000',
   'http://127.0.0.1:3000',
   process.env.FRONTEND_URL,
+  'https://oneresume.kr',
+  'https://www.oneresume.kr',
+  'https://api.oneresume.kr',
   // S3 static hosting 주소들 (점과 하이픈 모든 형식 허용)
   'http://oneresume-storage-parkungjung.s3-website.ap-northeast-2.amazonaws.com',
   'http://oneresume-storage-parkungjung.s3-website-ap-northeast-2.amazonaws.com',
@@ -28,8 +31,9 @@ app.use(cors({
   origin: function (origin, callback) {
     if (!origin) return callback(null, true);
     
-    // 허용 목록에 있거나 amazonaws.com으로 끝나는 S3 관련 도메인들 허용
+    // 허용 목록에 있거나 oneresume.kr의 서브도메인이거나 amazonaws.com으로 끝나는 S3 관련 도메인들 허용
     const isAllowed = allowedOrigins.some(allowed => origin === allowed) || 
+                     origin.endsWith('.oneresume.kr') ||
                      origin.includes('s3-website') || 
                      origin.endsWith('amazonaws.com');
     
