@@ -332,7 +332,7 @@ const ResumeForm = ({
                             <p className={`text-[11px] mb-1 font-bold italic ${isDarkMode ? 'text-zinc-400' : 'text-zinc-500'}`}>설정 예시:</p>
                             <p className="text-[12px] font-black tracking-tight">
                               아이디에 <span className="text-blue-500">"dev-hong"</span> 입력 시<br/>
-                              <span className="text-blue-500 underline">https://dev-hong.oneresume.com</span>
+                              <span className="text-blue-500 underline">https://dev-hong.oneresume.kr</span>
                             </p>
                           </div>
                         </div>
@@ -341,13 +341,13 @@ const ResumeForm = ({
                   </div>
                   <div className="flex items-center">
                     <input type="text" name="subdomain" value={formData.subdomain || ""} onChange={handleChange} placeholder="your-id" className={`flex-1 px-4 py-3 border rounded-l-xl outline-none border-r-0 ${theme.innerInputBg} font-black text-base`} />
-                    <span className={`px-5 py-3 font-black text-[13px] border border-l-0 rounded-r-xl ${isDarkMode ? 'bg-zinc-800 border-zinc-700 text-zinc-400' : 'bg-gray-100 border-gray-200 text-zinc-500'}`}>.oneresume.com</span>
+                    <span className={`px-5 py-3 font-black text-[13px] border border-l-0 rounded-r-xl ${isDarkMode ? 'bg-zinc-800 border-zinc-700 text-zinc-400' : 'bg-gray-100 border-gray-200 text-zinc-500'}`}>.oneresume.kr</span>
                   </div>
                   <div className="pl-1 flex flex-col gap-1.5 pt-1">
                     <div className="flex items-center gap-2">
                       <span className={`text-[12px] font-bold ${theme.subText}`}>접속 주소 미리보기:</span>
                       <span className="text-[13px] font-black text-blue-500 underline underline-offset-4 tracking-tight">
-                        https://{formData.subdomain || "your-id"}.oneresume.com
+                        https://{formData.subdomain || "your-id"}.oneresume.kr
                       </span>
                     </div>
                   </div>

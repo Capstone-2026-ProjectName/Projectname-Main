@@ -182,10 +182,10 @@ const Signup = ({ onSuccess, onSwitch, isDarkMode }) => {
               </div>
               <div className="flex items-center">
                 <input type="text" value={subdomain} onChange={(e) => setSubdomain(e.target.value)} className={`${inputBaseClass} !rounded-r-none border-r-0`} placeholder="아이디" />
-                <span className={`px-5 py-4 rounded-r-[48px] font-black text-sm border-2 border-l-0 ${theme.subdomainAddon}`}>.oneresume.com</span>
+                <span className={`px-5 py-4 rounded-r-[48px] font-black text-sm border-2 border-l-0 ${theme.subdomainAddon}`}>.oneresume.kr</span>
               </div>
               <div className="mt-2 ml-2 min-h-[20px]">
-                {getSubdomainError(subdomain) ? <p className="text-sm font-black text-red-500 animate-pulse">⚠️ {getSubdomainError(subdomain)}</p> : subdomain ? <p className="text-sm font-black text-blue-500 dark:text-blue-400">내 주소: <span className="underline">{subdomain.toLowerCase()}.oneresume.com</span></p> : <p className={`text-[12px] font-bold ${theme.subText} opacity-80`}>나만의 고유한 이력서 주소를 설정하세요.</p>}
+                {getSubdomainError(subdomain) ? <p className="text-sm font-black text-red-500 animate-pulse">⚠️ {getSubdomainError(subdomain)}</p> : subdomain ? <p className="text-sm font-black text-blue-500 dark:text-blue-400">내 주소: <span className="underline">{subdomain.toLowerCase()}.oneresume.kr</span></p> : <p className={`text-[12px] font-bold ${theme.subText} opacity-80`}>나만의 고유한 이력서 주소를 설정하세요.</p>}
               </div>
             </div>
             <button onClick={handleFinalSignup} disabled={!Object.values(validations).every(v => v) || !!getSubdomainError(subdomain)} className={`w-full py-5 rounded-[48px] font-black text-xl shadow-2xl transition-all active:scale-95 ${Object.values(validations).every(v => v) && !getSubdomainError(subdomain) ? 'bg-emerald-600 text-white hover:bg-emerald-700' : 'bg-zinc-300 text-zinc-500 cursor-not-allowed opacity-50'}`}>회원가입 완료 →</button>
