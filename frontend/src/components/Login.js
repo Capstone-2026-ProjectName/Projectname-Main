@@ -86,7 +86,7 @@ const Login = ({ onSuccess, onSwitchSignup, onSwitchForgot, isDarkMode, remember
           </label>
           <button type="button" onClick={onSwitchForgot} className="text-xs font-black text-blue-600 dark:text-blue-400 hover:underline uppercase tracking-tighter">비밀번호 찾기</button>
         </div>
-        <button type="submit" className="w-full py-5 bg-blue-600 hover:bg-blue-700 text-white rounded-[48px] font-black text-xl shadow-2xl shadow-blue-600/30 transition-all transform hover:-translate-y-1 active:scale-95">로그인 →</button>
+        <button type="submit" className="w-full py-4 bg-blue-600 hover:bg-blue-700 text-white rounded-[48px] font-black text-xl shadow-2xl shadow-blue-600/30 transition-all transform hover:-translate-y-1 active:scale-95">로그인 →</button>
       </form>
 
       <div className="space-y-4">
@@ -99,7 +99,7 @@ const Login = ({ onSuccess, onSwitchSignup, onSwitchForgot, isDarkMode, remember
         <div className="flex justify-center gap-6">
           <button 
             onClick={() => window.location.href = `${API_BASE_URL}/api/auth/kakao`}
-            className="w-14 h-14 flex items-center justify-center bg-[#FEE500] hover:bg-[#FDD835] text-[#3C1E1E] rounded-full transition-all active:scale-90 shadow-xl shadow-[#FEE500]/20 group"
+            className="w-14 h-14 flex items-center justify-center bg-[#FEE500] hover:bg-[#FDD835] text-[#3C1E1E] rounded-full transition-all active:scale-90 group"
             title="카카오 로그인"
           >
             <svg viewBox="0 0 24 24" className="w-9 h-9 fill-current group-hover:scale-110 transition-transform transform translate-y-[1.5px]">
@@ -108,7 +108,7 @@ const Login = ({ onSuccess, onSwitchSignup, onSwitchForgot, isDarkMode, remember
           </button>
           <button 
             onClick={() => window.location.href = `${API_BASE_URL}/api/auth/naver`}
-            className="w-14 h-14 flex items-center justify-center bg-[#03C75A] hover:bg-[#02b359] text-white rounded-full transition-all active:scale-90 shadow-xl shadow-[#03C75A]/20 group"
+            className="w-14 h-14 flex items-center justify-center bg-[#03C75A] hover:bg-[#02b359] text-white rounded-full transition-all active:scale-90 group"
             title="네이버 로그인"
           >
             <svg viewBox="0 0 24 24" className="w-6 h-6 fill-current group-hover:scale-110 transition-transform">

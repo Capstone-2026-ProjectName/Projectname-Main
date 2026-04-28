@@ -92,21 +92,23 @@ const Signup = ({ onSuccess, onSwitch, isDarkMode }) => {
     subdomainAddon: isDarkMode ? 'bg-slate-700 text-slate-400 border-slate-600' : 'bg-gray-200 text-zinc-500 border-gray-300'
   };
 
-  const inputBaseClass = `w-full px-6 py-4 rounded-[48px] outline-none transition-all font-semibold text-base ${theme.inputBg} focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500/50 border-2 border-transparent`;
+  const isStep2 = step === 2;
+
+  const inputBaseClass = `w-full py-4 rounded-[48px] outline-none transition-all font-semibold ${theme.inputBg} focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500/50 border-2 border-transparent ${
+    !isStep2 ? 'px-6 text-base' : 'px-5 text-sm'
+  }`;
 
   const getPasswordInputClass = (value, isValid) => {
-    const base = `w-full px-6 py-4 rounded-[48px] outline-none transition-all font-semibold text-base border-2 ${theme.inputBg} `;
+    const base = `w-full px-5 py-4 rounded-[48px] outline-none transition-all font-semibold text-sm border-2 ${theme.inputBg} `;
     if (value.length > 0) return base + (isValid ? "border-emerald-500/60 focus:ring-4 focus:ring-emerald-500/20" : "border-red-500/60 focus:ring-4 focus:ring-red-500/20");
     return base + "border-transparent focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500/50";
   };
 
-  const isStep2 = step === 2;
-
   return (
-    <div className="w-full max-w-md mx-auto space-y-6 pt-10 pb-4">
+    <div className={`w-full max-w-md mx-auto pt-6 pb-4 transition-all duration-500 ${!isStep2 ? 'space-y-6' : 'space-y-3'}`}>
       {/* 고정 헤더 */}
-      <div className="space-y-3 text-center lg:text-left mt-2">
-        <h2 className={`text-4xl font-black tracking-tight ${theme.titleText}`}>회원가입</h2>
+      <div className="space-y-2 text-center lg:text-left mt-2">
+        <h2 className={`text-3xl font-black tracking-tight ${theme.titleText}`}>회원가입</h2>
         <div className="relative h-6">
           <p className={`absolute inset-0 text-lg font-bold transition-all duration-500 ${theme.subText} ${!isStep2 ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-10'}`}>
             시작을 위해 이메일 인증이 필요합니다.
@@ -145,7 +147,7 @@ const Signup = ({ onSuccess, onSwitch, isDarkMode }) => {
               </div>
             )}
 
-            <button onClick={step === 0 ? handleSendCode : () => setStep(2)} disabled={step === 1 && !isVerified} className={`w-full py-5 bg-blue-600 text-white rounded-[48px] font-black text-lg shadow-2xl transition-all active:scale-95 flex items-center justify-center gap-3 ${step === 1 && !isVerified ? 'opacity-50 grayscale' : 'hover:bg-blue-700 shadow-blue-600/30'}`}>
+            <button onClick={step === 0 ? handleSendCode : () => setStep(2)} disabled={step === 1 && !isVerified} className={`w-full py-4 bg-blue-600 text-white rounded-[48px] font-black shadow-2xl transition-all active:scale-95 flex items-center justify-center gap-3 ${!isStep2 ? 'text-xl' : 'text-base'} ${step === 1 && !isVerified ? 'opacity-50 grayscale' : 'hover:bg-blue-700 shadow-blue-600/30'}`}>
               {step === 0 ? "인증번호 전송 →" : isVerified ? "다음 단계로 →" : "인증 대기 중..."}
             </button>
           </div>
@@ -153,47 +155,63 @@ const Signup = ({ onSuccess, onSwitch, isDarkMode }) => {
 
         {/* Step 2: 정보 입력 (오른쪽에서 나타남) */}
         <div className={`w-full transition-all duration-700 ease-[cubic-bezier(0.23,1,0.32,1)] ${isStep2 ? 'opacity-100 translate-x-0 relative z-20' : 'opacity-0 translate-x-full absolute top-0 left-0 z-10'}`}>
-          <div className="space-y-6">
-            <div className="space-y-2">
+          <div className="space-y-2.5">
+            <div className="space-y-1.5">
               <label className={`block text-[14px] font-black uppercase tracking-widest ml-2 ${theme.labelText}`}>비밀번호</label>
               <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} className={getPasswordInputClass(password, validations.length && validations.upper && validations.number && validations.special)} placeholder="••••••••" />
-              <div className="grid grid-cols-2 gap-x-3 gap-y-2.5 mt-4 px-2 text-[13px]">
+              <div className="grid grid-cols-2 gap-x-3 gap-y-1.5 mt-2 px-2 text-[13px]">
                 <ValidationItem isValid={validations.length} text={password.length > 0 && !validations.length ? "8자 미만" : "8자 이상"} isDirty={password.length > 0} />
                 <ValidationItem isValid={validations.upper} text={password.length > 0 && !validations.upper ? "대문자 미포함" : "대문자 포함"} isDirty={password.length > 0} />
                 <ValidationItem isValid={validations.number} text={password.length > 0 && !validations.number ? "숫자 미포함" : "숫자 포함"} isDirty={password.length > 0} /> 
                 <ValidationItem isValid={validations.special} text={password.length > 0 && !validations.special ? "특수문자 미포함" : "특수문자 포함"} isDirty={password.length > 0} /> 
               </div>
             </div>
-            <div className="space-y-2">
+            
+            <div className="space-y-1.5">
               <label className={`block text-[14px] font-black uppercase tracking-widest ml-2 ${theme.labelText}`}>비밀번호 확인</label>
               <input type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} className={getPasswordInputClass(confirmPassword, validations.match)} placeholder="••••••••" />
-              <div className="mt-2.5 px-2 text-[13px]"><ValidationItem isValid={validations.match} text={confirmPassword.length > 0 && !validations.match ? "비밀번호 불일치" : "비밀번호 일치"} isDirty={confirmPassword.length > 0} /></div>
+              <div className="mt-1 px-2 text-[13px]"><ValidationItem isValid={validations.match} text={confirmPassword.length > 0 && !validations.match ? "비밀번호 불일치" : "비밀번호 일치"} isDirty={confirmPassword.length > 0} /></div>
             </div>
-            <div className="space-y-2">
-              <div className="flex items-center gap-2 mb-1.5 ml-2">
-                <label className={`text-[14px] font-black uppercase tracking-widest ${theme.labelText}`}>개인 도메인 주소</label>
-                <div className="group relative flex items-center">
-                  <div className={`w-4 h-4 rounded-full border flex items-center justify-center text-[11px] font-serif font-bold italic cursor-help transition-colors ${isDarkMode ? 'border-slate-600 text-slate-500' : 'border-zinc-300 text-zinc-400'}`}>i</div>
-                  <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-4 w-72 p-4 bg-zinc-800 text-white text-[13px] rounded-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-50 shadow-2xl pointer-events-none border border-white/10 backdrop-blur-xl text-center">
-                    나만의 고유한 <span className="text-blue-400">웹 주소</span>입니다.<br/>이 주소를 통해 이력서를 공유할 수 있습니다.
-                    <div className="absolute top-full left-1/2 -translate-x-1/2 border-[10px] border-transparent border-t-zinc-800"></div>
+
+            <div className="space-y-1.5">
+              <div className="flex items-center justify-between mb-0.5 px-2">
+                <div className="flex items-center gap-2">
+                  <label className={`text-[14px] font-black uppercase tracking-widest ${theme.labelText}`}>개인 도메인 주소</label>
+                  <div className="group relative flex items-center">
+                    <div className={`w-4 h-4 rounded-full border flex items-center justify-center text-[11px] font-serif font-bold italic cursor-help transition-colors ${isDarkMode ? 'border-slate-600 text-slate-500' : 'border-zinc-300 text-zinc-400'}`}>i</div>
+                    <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-4 w-72 p-4 bg-zinc-800 text-white text-[13px] rounded-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-50 shadow-2xl pointer-events-none border border-white/10 backdrop-blur-xl text-center">
+                      나만의 고유한 <span className="text-blue-400">웹 주소</span>입니다.<br/>이 주소를 통해 이력서를 공유할 수 있습니다.
+                      <div className="absolute top-full left-1/2 -translate-x-1/2 border-[10px] border-transparent border-t-zinc-800"></div>
+                    </div>
                   </div>
                 </div>
+                {/* 미리보기를 오른쪽 끝으로 이동 */}
+                {!getSubdomainError(subdomain) && subdomain && (
+                  <p className="text-[11px] font-black text-blue-500 dark:text-blue-400 animate-in fade-in slide-in-from-right-2 duration-300 truncate max-w-[180px]">
+                    내 주소: <span className="underline">{subdomain.toLowerCase()}.oneresume.kr</span>
+                  </p>
+                )}
               </div>
               <div className="flex items-center">
                 <input type="text" value={subdomain} onChange={(e) => setSubdomain(e.target.value)} className={`${inputBaseClass} !rounded-r-none border-r-0`} placeholder="아이디" />
                 <span className={`px-5 py-4 rounded-r-[48px] font-black text-sm border-2 border-l-0 ${theme.subdomainAddon}`}>.oneresume.kr</span>
               </div>
-              <div className="mt-2 ml-2 min-h-[20px]">
-                {getSubdomainError(subdomain) ? <p className="text-sm font-black text-red-500 animate-pulse">⚠️ {getSubdomainError(subdomain)}</p> : subdomain ? <p className="text-sm font-black text-blue-500 dark:text-blue-400">내 주소: <span className="underline">{subdomain.toLowerCase()}.oneresume.kr</span></p> : <p className={`text-[12px] font-bold ${theme.subText} opacity-80`}>나만의 고유한 이력서 주소를 설정하세요.</p>}
-              </div>
+              {/* 에러가 있을 때만 공간 차지 */}
+              {getSubdomainError(subdomain) && (
+                <div className="mt-1 ml-2 animate-in fade-in slide-in-from-top-1">
+                  <p className="text-[11px] font-black text-red-500 animate-pulse">⚠️ {getSubdomainError(subdomain)}</p>
+                </div>
+              )}
             </div>
-            <button onClick={handleFinalSignup} disabled={!Object.values(validations).every(v => v) || !!getSubdomainError(subdomain)} className={`w-full py-5 rounded-[48px] font-black text-xl shadow-2xl transition-all active:scale-95 ${Object.values(validations).every(v => v) && !getSubdomainError(subdomain) ? 'bg-emerald-600 text-white hover:bg-emerald-700' : 'bg-zinc-300 text-zinc-500 cursor-not-allowed opacity-50'}`}>회원가입 완료 →</button>
+            
+            <div className="pt-1">
+              <button onClick={handleFinalSignup} disabled={!Object.values(validations).every(v => v) || !!getSubdomainError(subdomain)} className={`w-full py-4 rounded-[48px] font-black text-sm shadow-2xl transition-all active:scale-95 ${Object.values(validations).every(v => v) && !getSubdomainError(subdomain) ? 'bg-emerald-600 text-white hover:bg-emerald-700' : 'bg-zinc-300 text-zinc-500 cursor-not-allowed opacity-50'}`}>회원가입 완료 →</button>
+            </div>
           </div>
         </div>
       </div>
 
-      <div className="space-y-4">
+      <div className={`transition-all duration-500 ${!isStep2 ? 'space-y-4' : 'space-y-2.5'}`}>
         <div className="flex items-center gap-4">
           <div className="flex-1 h-px bg-zinc-500/10" />
           <span className={`text-[10px] font-black uppercase tracking-[0.2em] ${theme.labelText}`}>또는 소셜 계정으로 시작</span>
@@ -203,19 +221,27 @@ const Signup = ({ onSuccess, onSwitch, isDarkMode }) => {
         <div className="flex justify-center gap-6">
           <button 
             onClick={() => window.location.href = `${API_BASE_URL}/api/auth/kakao`}
-            className="w-14 h-14 flex items-center justify-center bg-[#FEE500] hover:bg-[#FDD835] text-[#3C1E1E] rounded-full transition-all active:scale-90 shadow-xl shadow-[#FEE500]/20 group"
+            className={`flex items-center justify-center bg-[#FEE500] hover:bg-[#FDD835] text-[#3C1E1E] rounded-full transition-all duration-500 active:scale-90 group ${
+              !isStep2 ? 'w-14 h-14' : 'w-11 h-11'
+            }`}
             title="카카오 로그인"
           >
-            <svg viewBox="0 0 24 24" className="w-9 h-9 fill-current group-hover:scale-110 transition-transform transform translate-y-[1.5px]">
+            <svg viewBox="0 0 24 24" className={`fill-current group-hover:scale-110 transition-all duration-500 transform translate-y-[1.2px] ${
+              !isStep2 ? 'w-9 h-9' : 'w-7 h-7'
+            }`}>
               <path d="M12 3c-4.97 0-9 3.185-9 7.115 0 2.558 1.707 4.8 4.33 6.048-.17.625-.62 2.28-.714 2.613-.113.4.14.394.29.293.118-.08 1.882-1.28 2.635-1.793.82.114 1.666.173 2.458.173 4.97 0 9-3.185 9-7.115S16.97 3 12 3z"/>
             </svg>
           </button>
           <button 
             onClick={() => window.location.href = `${API_BASE_URL}/api/auth/naver`}
-            className="w-14 h-14 flex items-center justify-center bg-[#03C75A] hover:bg-[#02b359] text-white rounded-full transition-all active:scale-90 shadow-xl shadow-[#03C75A]/20 group"
+            className={`flex items-center justify-center bg-[#03C75A] hover:bg-[#02b359] text-white rounded-full transition-all duration-500 active:scale-90 group ${
+              !isStep2 ? 'w-14 h-14' : 'w-11 h-11'
+            }`}
             title="네이버 로그인"
           >
-            <svg viewBox="0 0 24 24" className="w-6 h-6 fill-current group-hover:scale-110 transition-transform">
+            <svg viewBox="0 0 24 24" className={`fill-current group-hover:scale-110 transition-all duration-500 ${
+              !isStep2 ? 'w-6 h-6' : 'w-5 h-5'
+            }`}>
               <path d="M16.273 12.845L7.376 0H0v24h7.726V11.155L16.624 24H24V0h-7.727v12.845z"/>
             </svg>
           </button>
@@ -223,7 +249,7 @@ const Signup = ({ onSuccess, onSwitch, isDarkMode }) => {
       </div>
 
       {/* 고정 푸터 */}
-      <div className="text-center pt-4 border-t border-zinc-500/10">
+      <div className={`text-center border-t border-zinc-500/10 transition-all duration-500 ${!isStep2 ? 'pt-4' : 'pt-3'}`}>
         <button onClick={onSwitch} className="text-xs font-black text-blue-600 hover:underline tracking-wider uppercase">이미 회원이신가요? 로그인하기</button>
       </div>
     </div>

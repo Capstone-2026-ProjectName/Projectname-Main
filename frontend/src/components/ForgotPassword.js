@@ -54,7 +54,7 @@ const ForgotPassword = ({ onSwitch, isDarkMode }) => {
         <button 
           type="submit" 
           disabled={loading}
-          className="w-full py-5 bg-blue-600 hover:bg-blue-700 text-white rounded-[48px] font-black text-xl shadow-2xl shadow-blue-600/30 transition-all transform hover:-translate-y-1 active:scale-95 disabled:opacity-50"
+          className="w-full py-4 bg-blue-600 hover:bg-blue-700 text-white rounded-[48px] font-black text-xl shadow-2xl shadow-blue-600/30 transition-all transform hover:-translate-y-1 active:scale-95 disabled:opacity-50"
         >
           {loading ? "발송 중..." : "재설정 링크 보내기 →"}
         </button>

@@ -40,7 +40,7 @@ function ResetPasswordPage({ isDarkMode }) {
   };
 
   const getInputBorderClass = (value, isValidSection) => {
-    const baseClass = "w-full px-5 py-3.5 rounded-[24px] border-2 outline-none transition-all duration-200 focus:ring-2 ";
+    const baseClass = "w-full px-5 py-4 rounded-[24px] border-2 outline-none transition-all duration-200 focus:ring-2 ";
     const bgClass = isDarkMode ? "bg-zinc-700 text-zinc-100 placeholder-zinc-500 " : "bg-gray-100 text-zinc-800 placeholder-zinc-400 ";
     
     if (value.length > 0) {
@@ -50,7 +50,7 @@ function ResetPasswordPage({ isDarkMode }) {
     }
     return baseClass + bgClass + (isDarkMode ? "border-transparent" : "border-transparent");
   };
-		
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!PWD_REGEX.test(password)) { toast.error("비밀번호 보안 정책을 확인해주세요."); return; }
@@ -116,7 +116,7 @@ function ResetPasswordPage({ isDarkMode }) {
             <button
               type="submit"
               disabled={loading || !Object.values(validations).every((v) => v)}
-              className={`w-full py-3.5 rounded-[32px] font-bold text-base shadow-lg transition-all active:scale-95 mt-2 ${Object.values(validations).every((v) => v) ? "bg-blue-700 hover:bg-blue-800 dark:bg-blue-600 dark:hover:bg-blue-700 text-white" : "bg-zinc-300 text-zinc-500 cursor-not-allowed opacity-50"}`}
+              className={`w-full py-4 rounded-[32px] font-bold text-base shadow-lg transition-all active:scale-95 mt-2 ${Object.values(validations).every((v) => v) ? "bg-blue-700 hover:bg-blue-800 dark:bg-blue-600 dark:hover:bg-blue-700 text-white" : "bg-zinc-300 text-zinc-500 cursor-not-allowed opacity-50"}`}
             >
               비밀번호 변경하기 →
             </button>
