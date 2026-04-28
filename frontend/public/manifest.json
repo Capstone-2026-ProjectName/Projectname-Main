@@ -1,6 +1,7 @@
 {
-  "short_name": "React App",
-  "name": "Create React App Sample",
+  "short_name": "OneResume",
+  "name": "OneResume - 스마트 이력서 관리 플랫폼",
+  "description": "나만의 서브도메인 기반 스마트 이력서 관리 플랫폼",
   "icons": [
     {
       "src": "favicon.ico",
@@ -20,6 +21,6 @@
   ],
   "start_url": ".",
   "display": "standalone",
-  "theme_color": "#000000",
+  "theme_color": "#4f46e5",
   "background_color": "#ffffff"
 }
