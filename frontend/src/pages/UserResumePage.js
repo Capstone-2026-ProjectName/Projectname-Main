@@ -127,6 +127,10 @@ function UserResumePage({ subdomain }) {
     setTimeout(() => window.print(), 500); // EditPage와 동일하게 500ms로 최적화
   };
 
+  const copyShareLink = () => {
+    navigator.clipboard.writeText(window.location.href).then(() => toast.success("링크 복사 완료!"));
+  };
+
   const handlePrevPage = (e) => {
     e.stopPropagation();
     setFocusedPage(prev => (prev === 1 ? totalPages : prev - 1));
@@ -171,11 +175,20 @@ function UserResumePage({ subdomain }) {
         <div className="flex items-center gap-3">
           <ThemeToggle isDarkMode={isDarkMode} toggleDarkMode={toggleDarkMode} />
           <button 
-            onClick={downloadPDF} 
-            className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-4 py-2 rounded-xl text-xs shadow-lg shadow-emerald-600/20 transition-all active:scale-95 flex items-center gap-2"
+            onClick={copyShareLink} 
+            className="bg-blue-600 hover:bg-blue-700 text-white font-bold px-4 h-9 rounded-xl text-xs flex items-center gap-1.5 shadow-lg shadow-blue-600/20 transition-all active:scale-95"
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-              <path d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              <path strokeLinecap="round" strokeLinejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244" />
+            </svg>
+            링크 복사
+          </button>
+          <button 
+            onClick={downloadPDF} 
+            className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-4 h-9 rounded-xl text-xs shadow-lg shadow-emerald-600/20 transition-all active:scale-95 flex items-center gap-2"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
             </svg>
             PDF 저장
           </button>
