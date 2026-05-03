@@ -449,7 +449,7 @@ const ResumePreview = React.forwardRef(({
       >
         {pages.map((page, index) => {
           const isFocused = focusedPage === page.id;
-          const isAnyFocused = focusedPage !== null;
+          const isAnyFocused = typeof focusedPage === 'number';
           const col = index % cols;
           const row = Math.floor(index / cols);
           const left = `${col * (pageW + gap)}mm`;
@@ -458,7 +458,13 @@ const ResumePreview = React.forwardRef(({
           return (
             <div 
               key={page.id} 
-              className={`absolute w-[210mm] h-[297mm] p-[20mm] shadow-2xl transition-all duration-700 ease-[cubic-bezier(0.23,1,0.32,1)] cursor-pointer rounded-[2mm] flex flex-col ${theme.container} ${isFocused ? 'z-[100] !opacity-100 scale-[1.0]' : isAnyFocused ? 'opacity-20 blur-md scale-[0.9]' : 'hover:scale-[1.03] hover:z-50'}`}
+              className={`absolute w-[210mm] h-[297mm] p-[20mm] shadow-2xl transition-all duration-700 ease-[cubic-bezier(0.23,1,0.32,1)] cursor-pointer rounded-[2mm] flex flex-col ${theme.container} ${
+                isFocused 
+                  ? 'z-[100] opacity-100 scale-100' 
+                  : isAnyFocused 
+                    ? 'opacity-30 scale-95' 
+                    : 'opacity-100 hover:scale-[1.02] hover:z-50'
+              }`}
               style={{ left, top }}
               onClick={() => handlePageClick(page.id)}
             >
