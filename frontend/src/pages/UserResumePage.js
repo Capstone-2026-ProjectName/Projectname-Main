@@ -182,7 +182,7 @@ function UserResumePage({ subdomain }) {
         </div>
       </header>
 
-      <main className={`pt-24 pb-20 px-4 flex flex-col items-center justify-start min-h-screen relative z-10 ${focusedPage ? 'overflow-hidden' : ''}`}>
+      <main className={`pt-24 pb-20 px-4 flex flex-col items-center justify-start min-h-screen relative z-10 print:hidden ${focusedPage ? 'overflow-hidden' : ''}`}>
         {focusedPage && (
           <div className="fixed inset-0 z-[150] pointer-events-none flex flex-col items-center justify-between p-6 animate-fade-in print:hidden">
             <div className="w-full flex justify-end pointer-events-auto">
