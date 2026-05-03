@@ -1,10 +1,19 @@
 const axios = require('axios');
 const { PutObjectCommand } = require('@aws-sdk/client-s3');
+const { XMLParser } = require('fast-xml-parser');
 const prisma = require('../config/prisma');
 const s3 = require('../config/s3');
 
-// 커리어넷 API 키 (환경 변수에서 로드)
+const parser = new XMLParser();
+
+// 커리어넷/워크넷 API 키 (환경 변수에서 로드)
 const CAREERNET_API_KEY = process.env.CAREERNET_API_KEY;
+// 서비스별 전용 키 매핑 (워크넷은 서비스마다 키가 다름)
+const WORKNET_RECRUIT_KEY = process.env.WORKNET_RECRUIT_KEY; // 채용정보
+const WORKNET_DEPT_KEY = process.env.WORKNET_DEPT_KEY;       // 학과정보
+const WORKNET_JOB_KEY = process.env.WORKNET_JOB_KEY;         // 직무정보
+const WORKNET_OCCU_KEY = process.env.WORKNET_OCCU_KEY;       // 직업정보 (jobSrch용)
+const WORKNET_CODE_KEY = process.env.WORKNET_CODE_KEY;       // 공통코드
 
 // [0] 커리어넷 학교/전공 검색 프록시 API
 exports.searchCareerNet = async (req, res) => {
@@ -31,6 +40,80 @@ exports.searchCareerNet = async (req, res) => {
     } catch (error) {
         console.error("❌ 커리어넷 API 호출 에러:", error.response?.data || error.message);
         res.status(500).json({ message: "커리어넷 서버와 통신 중 오류가 발생했습니다." });
+    }
+};
+
+// [0-1] 워크넷 표준 직무 키워드 검색 프록시 API
+exports.searchWorknet = async (req, res) => {
+    try {
+        const { keyword } = req.query;
+        console.log(`🔍 [Worknet Search] Keyword: ${keyword}`);
+
+        if (!keyword || keyword.length < 2) {
+            return res.status(400).json({ message: "검색어는 2자 이상 입력해주세요." });
+        }
+
+        // jobSrch.do 서비스는 '직업정보' 키(OCCU)를 사용해야 함
+        const authKey = WORKNET_OCCU_KEY || WORKNET_JOB_KEY;
+
+        if (!authKey) {
+            return res.status(500).json({ message: "워크넷 직업정보 API 키가 설정되지 않았습니다." });
+        }
+
+        // [고용24 신규 통합 API 엔드포인트 적용]
+        const url = `https://www.work24.go.kr/cm/openApi/call/wk/callOpenApiSvcInfo212L01.do?authKey=${authKey}&returnType=XML&target=JOBCD&keyword=${encodeURIComponent(keyword)}&display=20`;
+        
+        console.log(`📡 [Goyong24 Official] URL: ${url}`);
+        const response = await axios.get(url);
+        
+        // XML -> JSON 변환
+        const jsonObj = parser.parse(response.data);
+        
+        // 데이터 구조 로깅
+        console.log("📦 Goyong24 Official Parsed Data:", JSON.stringify(jsonObj));
+
+        // 고용24 신규 응답 구조 대응 (로그 확인 결과 jobsList.jobList 에 데이터가 있음)
+        const items = jsonObj.jobsList?.jobList || jsonObj.jobsList?.item || jsonObj.jobIndexList?.item || jsonObj.wantedRoot?.item || [];
+        
+        // 만약 단일 객체로 왔을 경우 배열로 변환
+        const finalItems = Array.isArray(items) ? items : [items];
+
+        res.status(200).json({ jobSrch: finalItems });
+    } catch (error) {
+        console.error("❌ 워크넷 API 호출 에러:", error.response?.data || error.message);
+        res.status(500).json({ message: "워크넷 서버와 통신 중 오류가 발생했습니다." });
+    }
+};
+
+// [0-2] 워크넷 학과 정보 검색 프록시 API
+exports.searchWorknetDept = async (req, res) => {
+    try {
+        const { keyword } = req.query;
+        console.log(`🔍 [Worknet Dept Search] Keyword: ${keyword}`);
+
+        if (!keyword || keyword.length < 2) {
+            return res.status(400).json({ message: "검색어는 2자 이상 입력해주세요." });
+        }
+
+        if (!WORKNET_DEPT_KEY) {
+            return res.status(500).json({ message: "워크넷 학과 API 키가 설정되지 않았습니다." });
+        }
+
+        // 워크넷 API 명세: 학과 정보 검색 (univSrch)
+        // target=UNIV_DEPT_LIST (학과 리스트 조회) 필수
+        const url = `http://openapi.work.go.kr/opi/opi/opia/univSrch.do?authKey=${WORKNET_DEPT_KEY}&returnType=XML&target=UNIV_DEPT_LIST&srchType=univNm&keyword=${encodeURIComponent(keyword)}&display=20`;
+        
+        console.log(`🔗 Request URL: ${url}`);
+        const response = await axios.get(url);
+        
+        // XML -> JSON 변환
+        const jsonObj = parser.parse(response.data);
+        const items = jsonObj.univDeptList?.item || [];
+
+        res.status(200).json({ univSrch: items });
+    } catch (error) {
+        console.error("❌ 워크넷 학과 API 에러:", error.response?.data || error.message);
+        res.status(500).json({ message: "워크넷 학과 서버와 통신 중 오류가 발생했습니다." });
     }
 };
 
