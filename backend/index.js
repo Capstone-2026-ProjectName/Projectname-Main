@@ -4,6 +4,7 @@ const cors = require('cors');
 const authRoutes = require('./src/routes/auth');
 const resumeRoutes = require('./src/routes/resume');
 const aiRoutes = require('./src/routes/ai');
+const externalRoutes = require('./src/routes/external');
 const prisma = require('./src/config/prisma');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
@@ -90,6 +91,7 @@ app.use(express.json());
 app.use('/api/auth', authRoutes);
 app.use('/api/resume', resumeRoutes);
 app.use('/api/ai', aiRoutes);
+app.use('/api/external', externalRoutes);
 
 // 서버 실행 및 데이터베이스 연결 확인
 app.listen(port, '0.0.0.0',  async () => {
