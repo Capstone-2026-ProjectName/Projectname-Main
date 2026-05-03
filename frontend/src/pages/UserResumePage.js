@@ -4,6 +4,7 @@ import axios from "axios";
 import ResumePreview from "../components/ResumePreview";
 import { API_BASE_URL } from "../config";
 import toast from "react-hot-toast";
+import ThemeToggle from "../components/ThemeToggle";
 
 function UserResumePage({ subdomain }) {
   const resumeRef = useRef();
@@ -18,43 +19,73 @@ function UserResumePage({ subdomain }) {
     height: window.innerHeight 
   });
 
+  // useResume.js의 최신 매핑 로직과 완벽하게 동기화
   const mapUserDataToFields = useCallback((user) => {
     const resume = user.resumes?.[0] || {};
-    const eduParts = resume.education ? resume.education.split(" | ") : [];
+    const eduParts = resume.education ? resume.education.split(" | ") : ["", "", ""];
     
     return {
       username: user.username || "",
       email: user.email || "",
-      phone: user.phone || "",
-      address: user.address || "",
-      addressDetail: user.addressDetail || "",
-      age: user.age || "",
-      gender: user.gender || "",
-      useInternationalAge: user.useInternationalAge || false,
-      militaryStatus: user.militaryStatus || "",
-      militaryBranch: user.militaryBranch || "",
-      militaryRank: user.militaryRank || "",
-      militaryStartDate: user.militaryStartDate || "",
-      militaryEndDate: user.militaryEndDate || "",
-      militaryExemption: user.militaryExemption || "",
       subdomain: user.subdomain || "",
       bio: user.bio || "",
       profileImageUrl: user.profileImageUrl || "",
       githubUrl: user.githubUrl || "",
       blogUrl: user.blogUrl || "",
+      age: user.age || "",
+      phone: user.phone || "",
+      address: user.address || "",
+      addressDetail: user.addressDetail || "",
+      gender: user.gender || "",
+      useInternationalAge: user.useInternationalAge || false,
       resumeTitle: resume.title || "개발자 이력서",
       school: eduParts[0] || "",
       major: eduParts[1] || "",
       gpa: eduParts[2] || "",
       skills: resume.skills || "",
-      workExperiences: resume.workExperiences || [],
-      certifications: resume.certifications || [],
-      projects: resume.projects?.length > 0
-        ? resume.projects.map((p, i) => ({ ...p, id: `db-${p.id || i}` }))
-        : [],
+
+      // 병역 사항 매핑
+      militaryStatus: resume.militaryStatus || "",
+      militaryBranch: resume.militaryBranch || "",
+      militaryRank: resume.militaryRank || "",
+      militaryStartDate: resume.militaryStartDate || "",
+      militaryEndDate: resume.militaryEndDate || "",
+      militaryExemption: resume.militaryExemption || "",
+
       selfIntroGrowth: resume.selfIntroGrowth || "",
       selfIntroCharacter: resume.selfIntroCharacter || "",
       selfIntroMotivation: resume.selfIntroMotivation || "",
+      
+      workExperiences: resume.workExperiences?.length > 0 
+        ? resume.workExperiences.map((w, i) => ({ 
+            ...w, 
+            id: `db-we-${w.id || i}`, 
+            companyName: w.companyName || "", 
+            department: w.department || "", 
+            role: w.role || "", 
+            position: w.position || "", 
+            jobDescription: w.jobDescription || "", 
+            period: w.period || "", 
+            isCurrent: w.isCurrent || false 
+          }))
+        : [],
+        
+      certifications: resume.certifications?.length > 0
+        ? resume.certifications.map((c, i) => ({ 
+            ...c, 
+            id: `db-cert-${c.id || i}`, 
+            type: c.type || "CERT", 
+            name: c.name || "", 
+            issuer: c.issuer || "", 
+            date: c.date || "", 
+            score: c.score || "" 
+          }))
+        : [],
+
+      projects:
+        resume.projects?.length > 0
+          ? resume.projects.map((p, i) => ({ ...p, id: `db-prj-${p.id || i}` }))
+          : [],
     };
   }, []);
 
@@ -92,8 +123,8 @@ function UserResumePage({ subdomain }) {
   };
 
   const downloadPDF = () => {
-    toast.success("PDF 출력을 시작합니다");
-    setTimeout(() => window.print(), 1000);
+    toast.success("PDF 출력을 준비합니다.");
+    setTimeout(() => window.print(), 500); // EditPage와 동일하게 500ms로 최적화
   };
 
   const handlePrevPage = (e) => {
@@ -109,7 +140,6 @@ function UserResumePage({ subdomain }) {
   const getScale = () => {
     const a4HeightPx = 1122.52;
     if (focusedPage) return (windowSize.height - 120) / a4HeightPx;
-    // PC 기준 기본 스케일을 더 크게(0.6) 조정하여 선명도 확보
     if (windowSize.width < 640) return 0.35;
     if (windowSize.width < 1024) return 0.5;
     return 0.6;
@@ -130,42 +160,29 @@ function UserResumePage({ subdomain }) {
 
   return (
     <div className={`min-h-screen font-sans transition-colors duration-500 ${isDarkMode ? 'bg-[#09090b]' : 'bg-[#f4f4f5]'}`}>
-      <header className={`fixed top-0 left-0 right-0 h-20 flex items-center justify-between px-8 z-[200] backdrop-blur-xl border-b print:hidden transition-all duration-300 shadow-sm ${
-        isDarkMode ? 'bg-black/40 border-white/5' : 'bg-white/40 border-black/5'
+      <header className={`fixed top-0 left-0 right-0 h-16 flex items-center justify-between px-6 z-[200] backdrop-blur-xl border-b print:hidden transition-all duration-300 shadow-sm ${
+        isDarkMode ? 'bg-zinc-900/80 border-zinc-800' : 'bg-white/80 border-zinc-200'
       }`}>
-        <div className="flex items-center gap-4">
-          <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center text-white shadow-lg font-black text-xl">O</div>
-          <div>
-            <h1 className={`text-lg font-black tracking-tighter leading-none ${isDarkMode ? 'text-white' : 'text-zinc-800'}`}>OneResume</h1>
-            <p className={`text-[10px] font-bold uppercase tracking-widest opacity-50 mt-1 ${isDarkMode ? 'text-white' : 'text-black'}`}>Professional Portfolio</p>
-          </div>
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center text-white shadow-lg font-black text-lg">O</div>
+          <h1 className={`text-base font-black tracking-tighter ${isDarkMode ? 'text-white' : 'text-zinc-800'}`}>OneResume</h1>
         </div>
 
-        <div className="flex items-center gap-4">
-          <button
-            onClick={toggleDarkMode}
-            className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all active:scale-90 border ${
-              isDarkMode ? "bg-zinc-800 border-zinc-700 text-yellow-400" : "bg-white border-zinc-200 text-zinc-600"
-            }`}
+        <div className="flex items-center gap-3">
+          <ThemeToggle isDarkMode={isDarkMode} toggleDarkMode={toggleDarkMode} />
+          <button 
+            onClick={downloadPDF} 
+            className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-4 py-2 rounded-xl text-xs shadow-lg shadow-emerald-600/20 transition-all active:scale-95 flex items-center gap-2"
           >
-            {isDarkMode ? "☀️" : "🌙"}
-          </button>
-          <button onClick={downloadPDF} className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 px-6 rounded-xl shadow-lg shadow-blue-600/20 transition-all active:scale-95 flex items-center gap-2 text-sm">
-            <span>PDF 저장</span>
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+              <path d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+            PDF 저장
           </button>
         </div>
       </header>
 
-      <main className={`pt-32 pb-20 px-4 flex flex-col items-center justify-start min-h-screen relative z-10 ${focusedPage ? 'overflow-hidden' : ''}`}>
-        <div className="text-center mb-16 animate-fade-in print:hidden">
-          <h2 className={`text-4xl sm:text-5xl font-black mb-4 tracking-tighter ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>
-            {formData.username}
-          </h2>
-          <p className={`text-lg font-medium ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>
-            {formData.bio || "반갑습니다! 제 이력서를 소개합니다."}
-          </p>
-        </div>
-
+      <main className={`pt-24 pb-20 px-4 flex flex-col items-center justify-start min-h-screen relative z-10 ${focusedPage ? 'overflow-hidden' : ''}`}>
         {focusedPage && (
           <div className="fixed inset-0 z-[150] pointer-events-none flex flex-col items-center justify-between p-6 animate-fade-in print:hidden">
             <div className="w-full flex justify-end pointer-events-auto">
@@ -206,7 +223,6 @@ function UserResumePage({ subdomain }) {
               WebkitFontSmoothing: 'antialiased'
             }}
           >
-            {/* paneWidth를 50으로 설정하여 PC에서 기본 2열로 보이게 함 (더 선명함) */}
             <ResumePreview 
               formData={formData} 
               ref={resumeRef} 
@@ -230,6 +246,7 @@ function UserResumePage({ subdomain }) {
         )}
       </main>
 
+      {/* 인쇄 전용 레이아웃 (Hidden Print Portal) */}
       <div className="hidden print:block bg-white relative">
         <ResumePreview formData={formData} isDarkMode={false} printMode={true} />
       </div>
