@@ -439,8 +439,12 @@ const ResumeForm = ({
                 {formData.workExperiences.map((work, index) => (
                   <div key={index} className={`p-6 lg:p-8 rounded-[32px] border ${theme.cardBg} relative group space-y-5 transition-all hover:border-blue-500/30`}><button type="button" onClick={() => removeWork(index)} className="absolute -right-2 -top-2 w-9 h-9 bg-red-500 text-white rounded-xl flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all font-bold shadow-xl z-10">✕</button>
                     <div className="flex flex-col gap-2"><label className={`text-[11px] font-black uppercase ${theme.subText}`}>회사명</label><input type="text" name="companyName" value={work.companyName || ""} onChange={(e) => handleWorkChange(index, e)} className={`w-full px-4 py-3 rounded-xl border ${theme.innerInputBg}`} /></div>
+                    
+                    {/* 직급/직위 필드 (신규 추가) */}
+                    <div className="flex flex-col gap-2"><label className={`text-[11px] font-black uppercase ${theme.subText}`}>직급 / 직위</label><input type="text" name="position" value={work.position || ""} onChange={(e) => handleWorkChange(index, e)} placeholder="예: 과장, 선임, 사원" className={`w-full px-4 py-3 rounded-xl border ${theme.innerInputBg}`} /></div>
+
                     <div className="flex flex-col gap-2 relative">
-                      <label className={`text-[11px] font-black uppercase ${theme.subText}`}>직위</label>
+                      <label className={`text-[11px] font-black uppercase ${theme.subText}`}>담당 직무</label>
                       <input 
                         type="text" 
                         name="role" 
@@ -496,7 +500,7 @@ const ResumeForm = ({
               <DragDropContext onDragEnd={handleDragEnd}><Droppable droppableId="projects">{(provided) => (<div {...provided.droppableProps} ref={provided.innerRef} className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {formData.projects.map((project, index) => (
                   <Draggable key={project.id} draggableId={String(project.id)} index={index}>{(provided, snapshot) => (
-                    <div ref={provided.innerRef} {...provided.draggableProps} className={`p-6 lg:p-8 rounded-[32px] border ${snapshot.isDragging ? 'shadow-2xl border-blue-500 scale-[1.01] bg-white dark:bg-zinc-800' : theme.cardBg} relative group transition-all`}><div {...provided.dragHandleProps} className="absolute left-1/2 -translate-x-1/2 top-3 w-12 h-1.5 bg-zinc-300 dark:bg-zinc-700 rounded-full cursor-grab active:cursor-grabbing hover:bg-blue-400 transition-colors" />
+                    <div ref={provided.innerRef} {...provided.draggableProps} style={provided.draggableProps.style} className={`p-6 lg:p-8 rounded-[32px] border ${snapshot.isDragging ? 'shadow-2xl border-blue-500 scale-[1.01] bg-white dark:bg-zinc-800 z-[100]' : theme.cardBg} relative group transition-all`}><div {...provided.dragHandleProps} className="absolute left-1/2 -translate-x-1/2 top-3 w-12 h-1.5 bg-zinc-300 dark:bg-zinc-700 rounded-full cursor-grab active:cursor-grabbing hover:bg-blue-400 transition-colors" />
                       <div className="space-y-5 mt-4">
                         <div className="flex flex-col gap-2"><label className={`text-[11px] font-black uppercase ${theme.subText}`}>프로젝트명</label><input type="text" name="name" value={project.name || ""} onChange={(e) => handleProjectChange(index, e)} className={`w-full px-4 py-3 rounded-xl border ${theme.innerInputBg} font-black`} /></div>
                         <div className="grid grid-cols-2 gap-4">
@@ -505,29 +509,16 @@ const ResumeForm = ({
                             <input type="text" name="period" value={project.period || ""} onChange={(e) => handleProjectChange(index, e)} className={`w-full px-4 py-3 rounded-xl border ${theme.innerInputBg}`} />
                           </div>
                           <div className="flex flex-col gap-2 relative">
-                            <label className={`text-[11px] font-black uppercase ${theme.subText}`}>역할</label>
+                            <label className={`text-[11px] font-black uppercase ${theme.subText}`}>담당 역할</label>
                             <input 
                               type="text" 
                               name="role" 
                               value={project.role || ""} 
-                              onChange={(e) => { handleProjectChange(index, e); searchJob(e.target.value); }} 
-                              onFocus={() => { setActiveJobIndex(`project-${index}`); (project.role || "").length >= 2 && setShowJobList(true); }}
-                              onBlur={() => setTimeout(() => setShowJobList(false), 200)}
+                              onChange={(e) => handleProjectChange(index, e)} 
                               autoComplete="off"
-                              placeholder="예: 백엔드 개발자"
+                              placeholder="예: 인증 모듈 설계 및 API 개발"
                               className={`w-full px-4 py-3 rounded-xl border ${theme.innerInputBg}`} 
                             />
-                            {showJobList && activeJobIndex === `project-${index}` && (
-                              <div className={`absolute top-[calc(100%+8px)] left-0 right-0 z-50 max-h-60 overflow-y-auto rounded-2xl border-2 shadow-2xl ${isDarkMode ? 'bg-zinc-900 border-zinc-700' : 'bg-white border-zinc-100'}`}>
-                                {jobResults.length > 0 ? jobResults.map((item, idx) => (
-                                  <div key={idx} onClick={() => { handleProjectChange(index, { target: { name: 'role', value: item.jobNm } }); setShowJobList(false); }} 
-                                    className={`px-5 py-3 cursor-pointer border-b last:border-0 transition-colors ${isDarkMode ? 'border-zinc-800 hover:bg-zinc-800' : 'border-zinc-50 hover:bg-blue-50'}`}
-                                  >
-                                    <div className={`font-black text-[14px] ${isDarkMode ? 'text-white' : 'text-zinc-800'}`}>{item.jobNm}</div>
-                                  </div>
-                                )) : <div className={`p-5 text-center text-xs font-bold ${isDarkMode ? 'text-zinc-500' : 'text-zinc-400'}`}>검색 결과가 없습니다.</div>}
-                              </div>
-                            )}
                           </div>
                         </div>
                         <div className="flex flex-col gap-2"><label className={`text-[11px] font-black uppercase ${theme.subText}`}>기술 스택</label><input type="text" name="techStack" value={project.techStack || ""} onChange={(e) => handleProjectChange(index, e)} className={`w-full px-4 py-3 rounded-xl border ${theme.innerInputBg}`} /></div>

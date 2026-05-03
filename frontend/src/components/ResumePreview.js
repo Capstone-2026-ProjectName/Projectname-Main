@@ -171,7 +171,7 @@ const ResumePreview = React.forwardRef(({
           </div>
           {formData.gpa && (
             <div className={`px-5 py-2.5 rounded-xl border-2 font-black text-blue-600 ${isDarkMode ? 'bg-blue-500/10 border-blue-500/20' : 'bg-blue-50 border-blue-100'}`}>
-              GPA: {formData.gpa}
+              학점: {formData.gpa}
             </div>
           )}
         </div>
@@ -222,7 +222,11 @@ const ResumePreview = React.forwardRef(({
                   <div className="flex justify-between items-start mb-4">
                     <div>
                       <h4 className={`text-3xl font-black ${theme.textMain}`}>{work.companyName}</h4>
-                      <p className={`text-base font-bold mt-1 text-blue-500`}>{work.department} {work.role && `| ${work.role}`}</p>
+                      <p className={`text-base font-bold mt-1 text-blue-500`}>
+                        {work.department} 
+                        {work.position && ` | ${work.position}`} 
+                        {work.role && ` | ${work.role}`}
+                      </p>
                     </div>
                     {work.period && (
                       <div className={`text-xs font-black px-5 py-2 rounded-full border ${theme.boxBg}`}>

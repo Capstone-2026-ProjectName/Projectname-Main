@@ -184,7 +184,7 @@ exports.saveResume = async (req, res) => {
             username, email, subdomain, bio, githubUrl, blogUrl, profileImageUrl,
             age, gender, phone, address, addressDetail, useInternationalAge,
             resumeTitle, school, major, gpa, skills, projects,
-            militaryStatus, militaryPeriod, militaryClass,
+            militaryStatus, militaryBranch, militaryRank, militaryStartDate, militaryEndDate, militaryExemption,
             selfIntroGrowth, selfIntroCharacter, selfIntroMotivation,
             workExperiences, certifications
         } = req.body;
@@ -215,7 +215,8 @@ exports.saveResume = async (req, res) => {
             ? workExperiences.filter(w => w.companyName).map(w => ({
                     companyName: w.companyName || "",
                     department: w.department || "",
-                    role: w.role || "",
+                    role: w.role || "", // 담당 직무
+                    position: w.position || "", // 직위/직급 (추가)
                     jobDescription: w.jobDescription || "",
                     period: w.period || "",
                     isCurrent: w.isCurrent || false
@@ -257,8 +258,11 @@ exports.saveResume = async (req, res) => {
             education: educationString,
             skills: skills || "",
             militaryStatus: militaryStatus || null,
-            militaryPeriod: militaryPeriod || null,
-            militaryClass: militaryClass || null,
+            militaryBranch: militaryBranch || null,
+            militaryRank: militaryRank || null,
+            militaryStartDate: militaryStartDate || null,
+            militaryEndDate: militaryEndDate || null,
+            militaryExemption: militaryExemption || null,
             selfIntroGrowth: selfIntroGrowth || null,
             selfIntroCharacter: selfIntroCharacter || null,
             selfIntroMotivation: selfIntroMotivation || null,
