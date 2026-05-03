@@ -178,7 +178,7 @@ exports.getUserBySubdomain = async (req, res) => {
 // [3] 이력서 저장 API
 exports.saveResume = async (req, res) => {
     try {
-        const userId = req.user.id; // authMiddleware에서 넘겨준 유저 ID
+        const userId = req.user.id; 
 
         const {
             username, email, subdomain, bio, githubUrl, blogUrl, profileImageUrl,
@@ -189,6 +189,8 @@ exports.saveResume = async (req, res) => {
             workExperiences, certifications
         } = req.body;
 
+        console.log(`📡 [Save Request] UserID: ${userId}, Subdomain: ${subdomain}`);
+
         const parsedAge = age ? parseInt(age, 10) : null;
 
         const forbiddenWords = ['admin', 'api', 'www', 'mail', 'master', 'root', 'help', 'login', '너임마청년']
@@ -198,16 +200,16 @@ exports.saveResume = async (req, res) => {
             });
         }
 
-        const educationArr = [school, major, gpa].filter(Boolean);
-        const educationString = educationArr.length > 0 ? educationArr.join(" | ") : null;
+        const educationString = `${school || ""} | ${major || ""} | ${gpa || ""}`;
 
         const validProjects = Array.isArray(projects) 
             ? projects.filter(p => p.name || p.description).map(p => ({
                     name: p.name || "",
-                    period: p.period || "",
+                    description: p.description || "",
                     role: p.role || "",
                     techStack: p.techStack || "",
-                    description: p.description || ""
+                    period: p.period || "",
+                    githubUrl: p.githubUrl || ""
                 }))
             : [];
 
@@ -215,11 +217,11 @@ exports.saveResume = async (req, res) => {
             ? workExperiences.filter(w => w.companyName).map(w => ({
                     companyName: w.companyName || "",
                     department: w.department || "",
-                    role: w.role || "", // 담당 직무
-                    position: w.position || "", // 직위/직급 (추가)
+                    role: w.role || "", 
+                    position: w.position || "", 
                     jobDescription: w.jobDescription || "",
                     period: w.period || "",
-                    isCurrent: w.isCurrent || false
+                    isCurrent: w.isCurrent === true || w.isCurrent === 'true'
                 }))
             : [];
 
@@ -233,8 +235,9 @@ exports.saveResume = async (req, res) => {
                 }))
             : [];
 
-        console.log(`--- [${username || userId}]님의 데이터 저장 시작 ---`);
+        console.log(`📦 [Data Processing] Projects: ${validProjects.length}, Work: ${validWorkExperiences.length}, Certs: ${validCertifications.length}`);
 
+        // 1. 유저 정보 업데이트
         const user = await prisma.user.update({
             where: { id: userId },
             data: {
@@ -273,6 +276,7 @@ exports.saveResume = async (req, res) => {
         });
 
         if (existingResume) {
+            console.log(`🔄 [Resume Update] ID: ${existingResume.id}`);
             await prisma.resume.update({
                 where: { id: existingResume.id },
                 data: {
@@ -292,6 +296,7 @@ exports.saveResume = async (req, res) => {
                 }
             });
         } else {
+            console.log(`✨ [Resume Create] for User: ${user.id}`);
             await prisma.resume.create({
                 data: {
                     ...resumeData,
@@ -303,16 +308,21 @@ exports.saveResume = async (req, res) => {
             });
         }
 
-        console.log(`--- [${username || user.email}]님의 데이터 DB 저장 성공! ---`);
-        res.status(200).json({ message: "이력서가 DB에 성공적으로 저장되었습니다! 🚀" });
+        console.log(`✅ [${username || user.email}]님의 데이터 DB 저장 성공!`);
+        res.status(200).json({ message: "이력서가 성공적으로 저장되었습니다!" });
 
     } catch (error) {
-        console.error("이력서 저장 중 에러 발생:", error);
+        console.error("❌ 이력서 저장 중 에러 발생:", error);
+        
+        // 구체적인 에러 로깅
+        if (error.code) console.error("Error Code:", error.code);
+        if (error.meta) console.error("Error Meta:", error.meta);
+
         if (error.code === 'P2002') {
             return res.status(400).json({ 
                 message: "이미 사용 중인 이메일이거나 개인 도메인입니다. 다른 값을 입력해주세요." 
             });
         }
-        res.status(500).json({ message: "서버 저장 중 오류가 발생했습니다." });
+        res.status(500).json({ message: "서버 저장 중 오류가 발생했습니다. 상세: " + error.message });
     }
 };

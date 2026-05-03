@@ -48,7 +48,7 @@ const useResume = () => {
   // DB 데이터를 폼 데이터 구조로 매핑하는 함수
   const mapUserDataToFields = useCallback((user) => {
     const resume = user.resumes?.[0] || {};
-    const eduParts = resume.education ? resume.education.split(" | ") : [];
+    const eduParts = resume.education ? resume.education.split(" | ") : ["", "", ""];
     return {
       username: user.username || "",
       email: user.email || "",
@@ -179,7 +179,7 @@ const useResume = () => {
   const removeProject = (index) => {
     const newProjects = formData.projects.filter((_, i) => i !== index);
     setFormData({ ...formData, projects: newProjects });
-    toast("항목이 삭제되었습니다.", { icon: "🗑️" });
+    toast.error("항목이 삭제되었습니다.");
   };
 
   // 경력사항 핸들러
@@ -201,7 +201,7 @@ const useResume = () => {
   const removeWork = (index) => {
     const newWorks = formData.workExperiences.filter((_, i) => i !== index);
     setFormData({ ...formData, workExperiences: newWorks });
-    toast("경력 항목이 삭제되었습니다.", { icon: "🗑️" });
+    toast.error("경력 항목이 삭제되었습니다.");
   };
 
   // 자격증/어학 핸들러
@@ -223,7 +223,7 @@ const useResume = () => {
   const removeCert = (index) => {
     const newCerts = formData.certifications.filter((_, i) => i !== index);
     setFormData({ ...formData, certifications: newCerts });
-    toast("항목이 삭제되었습니다.", { icon: "🗑️" });
+    toast.error("항목이 삭제되었습니다.");
   };
 
   const handleImageUpload = async (e) => {
@@ -270,16 +270,34 @@ const useResume = () => {
     } catch (error) { return null; }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    const token = localStorage.getItem("oneresume-token");
-    fetch(`${API_BASE_URL}/api/resume/save`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-      body: JSON.stringify(formData),
-    })
-    .then(() => toast.success("저장되었습니다."))
-    .catch(() => toast.error("저장 실패"));
+    const token = localStorage.getItem("oneresume-token") || sessionStorage.getItem("oneresume-token");
+    
+    if (!token) {
+      toast.error("로그인 세션이 만료되었습니다. 다시 로그인해주세요.");
+      navigate("/");
+      return;
+    }
+
+    const loadingToast = toast.loading("데이터를 저장하고 있습니다...");
+
+    try {
+      const response = await axios.post(`${API_BASE_URL}/api/resume/save`, formData, {
+        headers: { 
+          "Content-Type": "application/json", 
+          Authorization: `Bearer ${token}` 
+        },
+      });
+
+      if (response.status === 200 || response.status === 201) {
+        toast.success(response.data.message || "성공적으로 저장되었습니다!", { id: loadingToast });
+      }
+    } catch (error) {
+      console.error("저장 중 오류 발생:", error);
+      const errorMessage = error.response?.data?.message || "서버 저장 중 오류가 발생했습니다. 다시 시도해주세요.";
+      toast.error(errorMessage, { id: loadingToast });
+    }
   };
 
   return {

@@ -500,7 +500,9 @@ const ResumeForm = ({
               <DragDropContext onDragEnd={handleDragEnd}><Droppable droppableId="projects">{(provided) => (<div {...provided.droppableProps} ref={provided.innerRef} className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {formData.projects.map((project, index) => (
                   <Draggable key={project.id} draggableId={String(project.id)} index={index}>{(provided, snapshot) => (
-                    <div ref={provided.innerRef} {...provided.draggableProps} style={provided.draggableProps.style} className={`p-6 lg:p-8 rounded-[32px] border ${snapshot.isDragging ? 'shadow-2xl border-blue-500 scale-[1.01] bg-white dark:bg-zinc-800 z-[100]' : theme.cardBg} relative group transition-all`}><div {...provided.dragHandleProps} className="absolute left-1/2 -translate-x-1/2 top-3 w-12 h-1.5 bg-zinc-300 dark:bg-zinc-700 rounded-full cursor-grab active:cursor-grabbing hover:bg-blue-400 transition-colors" />
+                    <div ref={provided.innerRef} {...provided.draggableProps} style={provided.draggableProps.style} className={`p-6 lg:p-8 rounded-[32px] border ${snapshot.isDragging ? 'shadow-2xl border-blue-500 scale-[1.01] bg-white dark:bg-zinc-800 z-[100]' : theme.cardBg} relative group transition-all`}>
+                      <button type="button" onClick={() => removeProject(index)} className="absolute -right-2 -top-2 w-9 h-9 bg-red-500 text-white rounded-xl flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all font-bold shadow-xl z-10">✕</button>
+                      <div {...provided.dragHandleProps} className="absolute left-1/2 -translate-x-1/2 top-3 w-12 h-1.5 bg-zinc-300 dark:bg-zinc-700 rounded-full cursor-grab active:cursor-grabbing hover:bg-blue-400 transition-colors" />
                       <div className="space-y-5 mt-4">
                         <div className="flex flex-col gap-2"><label className={`text-[11px] font-black uppercase ${theme.subText}`}>프로젝트명</label><input type="text" name="name" value={project.name || ""} onChange={(e) => handleProjectChange(index, e)} className={`w-full px-4 py-3 rounded-xl border ${theme.innerInputBg} font-black`} /></div>
                         <div className="grid grid-cols-2 gap-4">
@@ -523,7 +525,6 @@ const ResumeForm = ({
                         </div>
                         <div className="flex flex-col gap-2"><label className={`text-[11px] font-black uppercase ${theme.subText}`}>기술 스택</label><input type="text" name="techStack" value={project.techStack || ""} onChange={(e) => handleProjectChange(index, e)} className={`w-full px-4 py-3 rounded-xl border ${theme.innerInputBg}`} /></div>
                         <div className="flex flex-col gap-2"><div className="flex justify-between items-center"><label className={`text-[11px] font-black uppercase ${theme.subText}`}>상세 성과</label><button type="button" onClick={() => handleAiAudit(`project-${index}`, project.description)} className="text-[10px] text-blue-600 font-black hover:underline">AI 분석</button></div><textarea name="description" value={project.description || ""} onChange={(e) => handleProjectChange(index, e)} onInput={autoExpand} rows="5" className={`w-full px-4 py-3 rounded-xl border ${theme.innerInputBg} resize-none leading-relaxed text-[13px] min-h-[120px] overflow-hidden`} /></div>
-                        <div className="flex justify-end"><button type="button" onClick={() => removeProject(index)} className="text-red-500 text-[10px] font-black hover:underline uppercase tracking-tight">프로젝트 삭제</button></div>
                       </div>
                     </div>)}
                   </Draggable>))}
