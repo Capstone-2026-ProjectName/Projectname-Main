@@ -83,8 +83,9 @@ model WorkExperience {
   id              Int     @id @default(autoincrement())
   companyName     String
   department      String?
-  role            String? // 직위
-  jobDescription  String? @db.Text // 담당 직무
+  role            String? // 담당 직무 (예: 프론트엔드 개발자)
+  position        String? // 직위/직급 (예: 과장, 대리)
+  jobDescription  String? @db.Text // 상세 업무 내용
   period          String? // 근무 기간
   isCurrent       Boolean @default(false) // 재직 중 여부
   resumeId        Int

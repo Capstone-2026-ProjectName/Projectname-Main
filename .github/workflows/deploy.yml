@@ -52,6 +52,13 @@ jobs:
             echo "GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}" >> .env
             echo "CAREERNET_API_KEY=${{ secrets.CAREERNET_API_KEY }}" >> .env
             
+            # 고용24 (워크넷) API 키 5종 (신규 추가)
+            echo "WORKNET_RECRUIT_KEY=${{ secrets.WORKNET_RECRUIT_KEY }}" >> .env
+            echo "WORKNET_DEPT_KEY=${{ secrets.WORKNET_DEPT_KEY }}" >> .env
+            echo "WORKNET_JOB_KEY=${{ secrets.WORKNET_JOB_KEY }}" >> .env
+            echo "WORKNET_OCCU_KEY=${{ secrets.WORKNET_OCCU_KEY }}" >> .env
+            echo "WORKNET_CODE_KEY=${{ secrets.WORKNET_CODE_KEY }}" >> .env
+            
             # Prisma 세팅 및 DB 스키마 동기화 (군 관련 필드 생성 등)
             npx prisma generate
             npx prisma db push --accept-data-loss # DB 스키마 강제 동기화 (주의: 컬럼 변경 반영)

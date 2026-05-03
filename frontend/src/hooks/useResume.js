@@ -28,10 +28,14 @@ const useResume = () => {
     gpa: "",
     skills: "",
     
-    // 새로 추가된 필드들
+    // 병역 사항 (DB 스키마와 일치)
     militaryStatus: "",
-    militaryPeriod: "",
-    militaryClass: "",
+    militaryBranch: "",
+    militaryRank: "",
+    militaryStartDate: "",
+    militaryEndDate: "",
+    militaryExemption: "",
+
     selfIntroGrowth: "",
     selfIntroCharacter: "",
     selfIntroMotivation: "",
@@ -78,7 +82,17 @@ const useResume = () => {
       selfIntroMotivation: resume.selfIntroMotivation || "",
       
       workExperiences: resume.workExperiences?.length > 0 
-        ? resume.workExperiences.map((w, i) => ({ ...w, id: `db-we-${w.id || i}`, companyName: w.companyName || "", department: w.department || "", role: w.role || "", jobDescription: w.jobDescription || "", period: w.period || "", isCurrent: w.isCurrent || false }))
+        ? resume.workExperiences.map((w, i) => ({ 
+            ...w, 
+            id: `db-we-${w.id || i}`, 
+            companyName: w.companyName || "", 
+            department: w.department || "", 
+            role: w.role || "", // 담당 직무
+            position: w.position || "", // 직위/직급 (추가)
+            jobDescription: w.jobDescription || "", 
+            period: w.period || "", 
+            isCurrent: w.isCurrent || false 
+          }))
         : [],
         
       certifications: resume.certifications?.length > 0
@@ -179,7 +193,7 @@ const useResume = () => {
   const addWork = () => {
     setFormData({
       ...formData,
-      workExperiences: [...formData.workExperiences, { id: `manual-we-${Date.now()}`, companyName: "", department: "", role: "", jobDescription: "", period: "", isCurrent: false }],
+      workExperiences: [...formData.workExperiences, { id: `manual-we-${Date.now()}`, companyName: "", department: "", role: "", position: "", jobDescription: "", period: "", isCurrent: false }],
     });
     toast.success("새 경력사항이 추가되었습니다.");
   };
