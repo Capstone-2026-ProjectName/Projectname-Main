@@ -186,7 +186,7 @@ exports.saveResume = async (req, res) => {
             resumeTitle, school, major, gpa, skills, projects,
             militaryStatus, militaryBranch, militaryRank, militaryStartDate, militaryEndDate, militaryExemption,
             selfIntroGrowth, selfIntroCharacter, selfIntroMotivation,
-            workExperiences, certifications
+            workExperiences, certifications, sectionOrder
         } = req.body;
 
         console.log(`📡 [Save Request] UserID: ${userId}, Subdomain: ${subdomain}`);
@@ -269,6 +269,7 @@ exports.saveResume = async (req, res) => {
             selfIntroGrowth: selfIntroGrowth || null,
             selfIntroCharacter: selfIntroCharacter || null,
             selfIntroMotivation: selfIntroMotivation || null,
+            sectionOrder: sectionOrder || "edu,skills,experience,projects,certs,extra",
         };
 
         const existingResume = await prisma.resume.findFirst({

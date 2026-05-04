@@ -39,6 +39,7 @@ const useResume = () => {
     selfIntroGrowth: "",
     selfIntroCharacter: "",
     selfIntroMotivation: "",
+    sectionOrder: "edu,skills,experience,projects,certs,extra",
 
     workExperiences: [],
     certifications: [],
@@ -80,6 +81,7 @@ const useResume = () => {
       selfIntroGrowth: resume.selfIntroGrowth || "",
       selfIntroCharacter: resume.selfIntroCharacter || "",
       selfIntroMotivation: resume.selfIntroMotivation || "",
+      sectionOrder: resume.sectionOrder || "edu,skills,experience,projects,certs,extra",
       
       workExperiences: resume.workExperiences?.length > 0 
         ? resume.workExperiences.map((w, i) => ({ 
@@ -256,11 +258,20 @@ const useResume = () => {
   };
 
   const handleDragEnd = (result) => {
-    if (!result.destination) return;
-    const items = Array.from(formData.projects);
-    const [reorderedItem] = items.splice(result.source.index, 1);
-    items.splice(result.destination.index, 0, reorderedItem);
-    setFormData({ ...formData, projects: items });
+    const { source, destination } = result;
+    if (!destination) return;
+    
+    if (source.droppableId === 'projects') {
+      const items = Array.from(formData.projects);
+      const [reorderedItem] = items.splice(source.index, 1);
+      items.splice(destination.index, 0, reorderedItem);
+      setFormData({ ...formData, projects: items });
+    } else if (source.droppableId === 'sections') {
+      const sections = (formData.sectionOrder || "edu,skills,experience,projects,certs,extra").split(',');
+      const [reorderedSection] = sections.splice(source.index, 1);
+      sections.splice(destination.index, 0, reorderedSection);
+      setFormData({ ...formData, sectionOrder: sections.join(',') });
+    }
   };
 
   const auditContent = async (fieldName, content, context = "") => {
