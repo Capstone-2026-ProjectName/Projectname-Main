@@ -79,9 +79,166 @@ const ResumePreview = React.forwardRef(({
 
   const pages = [];
   let currentPageNumber = 1;
+
+  // --- 섹션별 렌더링 함수들 ---
+  const renderEdu = () => (
+    <section className="mb-10">
+      <h3 className={`text-base uppercase tracking-widest font-black mb-6 border-b-2 pb-1 inline-block ${theme.sectionTitle}`}>학력 사항</h3>
+      <div className="flex justify-between items-start mt-2">
+        <div>
+          <p className={`text-3xl font-black ${theme.textMain}`}>{formData.school || "학교 정보 없음"}</p>
+          <p className={`text-xl font-bold mt-1.5 ${theme.textSub}`}>{formData.major}</p>
+        </div>
+        {formData.gpa && (
+          <div className={`px-5 py-2.5 rounded-xl border-2 font-black text-blue-600 ${isDarkMode ? 'bg-blue-500/10 border-blue-500/20' : 'bg-blue-50 border-blue-100'}`}>
+            학점: {formData.gpa}
+          </div>
+        )}
+      </div>
+    </section>
+  );
+
+  const renderSkills = () => (
+    <section className="mb-10">
+      <h3 className={`text-base uppercase tracking-widest font-black mb-6 border-b-2 pb-1 inline-block ${theme.sectionTitle}`}>보유 기술</h3>
+      <div className="flex flex-wrap gap-3 mt-2">
+        {formData.skills ? formData.skills.split(",").map((s, i) => (
+          <span key={i} className={`px-5 py-2 rounded-xl text-base font-black transition-all ${theme.skillBg} hover:scale-105`}>{s.trim()}</span>
+        )) : <p className="text-base opacity-40">기술 스택을 입력해주세요.</p>}
+      </div>
+    </section>
+  );
+
+  const renderCerts = () => formData.certifications?.length > 0 && (
+    <section className="mb-10">
+      <h3 className={`text-base uppercase tracking-widest font-black mb-6 border-b-2 pb-1 inline-block ${theme.sectionTitle}`}>자격 / 어학 / 수상</h3>
+      <div className="grid grid-cols-2 gap-x-10 gap-y-5">
+        {formData.certifications.slice(0, 6).map((cert, i) => (
+          <div key={i} className={`flex justify-between items-end border-b pb-2.5 border-dashed ${theme.divider}`}>
+            <div>
+              <p className={`font-black text-base ${theme.textMain}`}>{cert.name}</p>
+              <p className={`text-xs font-bold mt-1 ${theme.textSub}`}>{cert.issuer} | {cert.date}</p>
+            </div>
+            {cert.score && <span className={`text-xs font-black ${theme.link}`}>{cert.score}</span>}
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+
+  const renderExperience = () => {
+    if (!formData.workExperiences?.length) return null;
+    return (
+      <section className="mb-10">
+        <h3 className={`text-base uppercase tracking-widest font-black mb-10 border-b-2 pb-1 inline-block ${theme.sectionTitle}`}>경력 사항</h3>
+        <div className="space-y-12">
+          {formData.workExperiences.map((work, index) => (
+            <div key={index} className={`relative pl-8 border-l-2 ${theme.timelineLine}`}>
+              <div className="absolute w-4 h-4 rounded-full -left-[9px] top-1.5 bg-blue-600 ring-4 ring-white dark:ring-zinc-800"></div>
+              <div className="flex justify-between items-start mb-4">
+                <div>
+                  <h4 className={`text-3xl font-black ${theme.textMain}`}>{work.companyName}</h4>
+                  <p className={`text-base font-bold mt-1 text-blue-500`}>
+                    {work.department} 
+                    {work.position && ` | ${work.position}`} 
+                    {work.role && ` | ${work.role}`}
+                  </p>
+                </div>
+                {work.period && (
+                  <div className={`text-xs font-black px-5 py-2 rounded-full border ${theme.boxBg}`}>
+                    {work.period} {work.isCurrent ? <span className="text-blue-500 ml-1">(재직중)</span> : ''}
+                  </div>
+                )}
+              </div>
+              <p className={`text-[15px] whitespace-pre-wrap leading-relaxed font-medium ${theme.textSub}`}>{work.jobDescription}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+    );
+  };
+
+  const renderProjects = () => {
+    const totalProjects = formData.projects.length;
+    if (!githubUsername && totalProjects === 0) return null;
+    return (
+      <section className="mb-10">
+        {githubUsername && (
+          <div className="mb-12">
+            <h3 className={`text-base uppercase tracking-widest font-black mb-6 border-b-2 pb-1 inline-block ${theme.sectionTitle}`}>GitHub 활동</h3>
+            <div className={`flex justify-center p-8 border rounded-3xl ${theme.boxBg}`}>
+              <GitHubCalendar 
+                username={githubUsername} 
+                blockSize={printMode ? 9 : 11} 
+                blockMargin={4} 
+                fontSize={11} 
+                colorScheme={printMode ? "light" : (isDarkMode ? "dark" : "light")} 
+                theme={calendarTheme} 
+              />
+            </div>
+          </div>
+        )}
+        
+        {totalProjects > 0 && (
+          <div>
+            <h3 className={`text-base uppercase tracking-widest font-black mb-10 border-b-2 pb-1 inline-block ${theme.sectionTitle}`}>주요 프로젝트</h3>
+            <div className="space-y-12">
+              {formData.projects.map((project, index) => (
+                <div key={index} className={`relative pl-8 border-l-2 ${theme.timelineLine}`}>
+                  <div className="absolute w-4 h-4 rounded-full -left-[9px] top-1.5 bg-blue-600 ring-4 ring-white dark:ring-zinc-800"></div>
+                  <div className="flex justify-between items-start mb-4">
+                    <h4 className={`text-2xl font-black ${theme.textMain}`}>{project.name}</h4>
+                    {project.period && <span className={`text-xs font-black px-5 py-2 rounded-full border ${theme.boxBg}`}>{project.period}</span>}
+                  </div>
+                  <p className={`text-base mb-4 text-blue-500 font-bold`}>{project.role ? `${project.role} | ` : ''}{project.techStack}</p>
+                  <p className={`text-[15px] whitespace-pre-wrap leading-relaxed font-medium ${theme.textSub}`}>{project.description}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </section>
+    );
+  };
+
+  const renderExtra = () => (formData.selfIntroGrowth || formData.selfIntroCharacter || formData.selfIntroMotivation) && (
+    <section className="mb-10 space-y-12">
+      <h3 className={`text-base uppercase tracking-widest font-black mb-6 border-b-2 pb-1 inline-block ${theme.sectionTitle}`}>자기소개서</h3>
+      
+      {formData.selfIntroGrowth && (
+        <div>
+          <h4 className={`text-lg font-black mb-4 flex items-center gap-3 ${theme.textMain}`}>
+            <span className="w-7 h-7 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-sm">1</span>
+            성장과정
+          </h4>
+          <p className={`text-[15px] leading-[1.9] whitespace-pre-wrap font-medium ${theme.textSub}`}>{formData.selfIntroGrowth}</p>
+        </div>
+      )}
+      {formData.selfIntroCharacter && (
+        <div>
+          <h4 className={`text-lg font-black mb-4 flex items-center gap-3 ${theme.textMain}`}>
+            <span className="w-7 h-7 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-sm">2</span>
+            성격의 장단점
+          </h4>
+          <p className={`text-[15px] leading-[1.9] whitespace-pre-wrap font-medium ${theme.textSub}`}>{formData.selfIntroCharacter}</p>
+        </div>
+      )}
+      {formData.selfIntroMotivation && (
+        <div>
+          <h4 className={`text-lg font-black mb-4 flex items-center gap-3 ${theme.textMain}`}>
+            <span className="w-7 h-7 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-sm">3</span>
+            지원동기 및 포부
+          </h4>
+          <p className={`text-[15px] leading-[1.9] whitespace-pre-wrap font-medium ${theme.textSub}`}>{formData.selfIntroMotivation}</p>
+        </div>
+      )}
+    </section>
+  );
+
+  // --- 메인 페이지 구성 (순서 적용) ---
   
-  // --- PAGE 01: 기본 정보, 병역, 교육, 기술, 스펙 ---
-  pages.push({ id: currentPageNumber, content: (
+  // 1. 기본 인적사항 헤더 (항상 최상단)
+  const header = (
     <>
       <div className="absolute top-0 left-0 w-full h-2 bg-blue-600"></div>
       <div className={`border-b-2 pb-10 mb-10 ${theme.divider}`}>
@@ -161,205 +318,46 @@ const ResumePreview = React.forwardRef(({
           )}
         </div>
       </div>
+    </>
+  );
 
-      <section className="mb-10">
-        <h3 className={`text-base uppercase tracking-widest font-black mb-6 border-b-2 pb-1 inline-block ${theme.sectionTitle}`}>학력 사항</h3>
-        <div className="flex justify-between items-start mt-2">
-          <div>
-            <p className={`text-3xl font-black ${theme.textMain}`}>{formData.school || "학교 정보 없음"}</p>
-            <p className={`text-xl font-bold mt-1.5 ${theme.textSub}`}>{formData.major}</p>
-          </div>
-          {formData.gpa && (
-            <div className={`px-5 py-2.5 rounded-xl border-2 font-black text-blue-600 ${isDarkMode ? 'bg-blue-500/10 border-blue-500/20' : 'bg-blue-50 border-blue-100'}`}>
-              학점: {formData.gpa}
-            </div>
-          )}
-        </div>
-      </section>
+  // 2. 섹션들을 순서대로 배치
+  const sections = (formData.sectionOrder || "edu,skills,experience,projects,certs,extra").split(',');
+  const sectionContent = sections.map(sec => {
+    switch(sec) {
+      case 'edu': return renderEdu();
+      case 'skills': return renderSkills();
+      case 'certs': return renderCerts();
+      case 'experience': return renderExperience();
+      case 'projects': return renderProjects();
+      case 'extra': return renderExtra();
+      default: return null;
+    }
+  });
 
-      <section className="mb-10">
-        <h3 className={`text-base uppercase tracking-widest font-black mb-6 border-b-2 pb-1 inline-block ${theme.sectionTitle}`}>보유 기술</h3>
-        <div className="flex flex-wrap gap-3 mt-2">
-          {formData.skills ? formData.skills.split(",").map((s, i) => (
-            <span key={i} className={`px-5 py-2 rounded-xl text-base font-black transition-all ${theme.skillBg} hover:scale-105`}>{s.trim()}</span>
-          )) : <p className="text-base opacity-40">기술 스택을 입력해주세요.</p>}
-        </div>
-      </section>
+  // 3. 페이지 분할 로직 (간소화 버전 - 실제로는 높이 계산이 필요하지만, 여기서는 순서대로 나열)
+  // Page 1: Header + 일부 섹션
+  // Page 2+: 나머지 섹션
+  // TODO: 나중에 더 정밀한 자동 페이징이 필요하면 각 섹션별로 pages.push를 조절해야 함.
+  // 현재는 우선 모든 섹션을 순서대로 보여주는 것에 집중.
 
-      {formData.certifications?.length > 0 && (
-        <section className="mb-10">
-          <h3 className={`text-base uppercase tracking-widest font-black mb-6 border-b-2 pb-1 inline-block ${theme.sectionTitle}`}>자격 / 어학 / 수상</h3>
-          <div className="grid grid-cols-2 gap-x-10 gap-y-5">
-            {formData.certifications.slice(0, 6).map((cert, i) => (
-              <div key={i} className={`flex justify-between items-end border-b pb-2.5 border-dashed ${theme.divider}`}>
-                <div>
-                  <p className={`font-black text-base ${theme.textMain}`}>{cert.name}</p>
-                  <p className={`text-xs font-bold mt-1 ${theme.textSub}`}>{cert.issuer} | {cert.date}</p>
-                </div>
-                {cert.score && <span className={`text-xs font-black ${theme.link}`}>{cert.score}</span>}
-              </div>
-            ))}
-          </div>
-        </section>
-      )}
+  pages.push({ id: currentPageNumber, content: (
+    <>
+      {header}
+      {sectionContent.slice(0, 3)}
       <div className="absolute bottom-8 right-10 text-[11px] opacity-30 font-bold tracking-tighter italic">{String(currentPageNumber++).padStart(2, '0')} 페이지</div>
     </>
   )});
 
-  // --- WORK EXPERIENCES (경력 사항) ---
-  if (formData.workExperiences?.length > 0) {
-    const worksPerPage = 3;
-    for (let i = 0; i < formData.workExperiences.length; i += worksPerPage) {
-      const batch = formData.workExperiences.slice(i, i + worksPerPage);
-      pages.push({ id: pages.length + 1, content: (
-        <>
-          <section className="mt-4">
-            <h3 className={`text-base uppercase tracking-widest font-black mb-10 border-b-2 pb-1 inline-block ${theme.sectionTitle}`}>경력 사항</h3>
-            <div className="space-y-12">
-              {batch.map((work, index) => (
-                <div key={index} className={`relative pl-8 border-l-2 ${theme.timelineLine}`}>
-                  <div className="absolute w-4 h-4 rounded-full -left-[9px] top-1.5 bg-blue-600 ring-4 ring-white dark:ring-zinc-800"></div>
-                  <div className="flex justify-between items-start mb-4">
-                    <div>
-                      <h4 className={`text-3xl font-black ${theme.textMain}`}>{work.companyName}</h4>
-                      <p className={`text-base font-bold mt-1 text-blue-500`}>
-                        {work.department} 
-                        {work.position && ` | ${work.position}`} 
-                        {work.role && ` | ${work.role}`}
-                      </p>
-                    </div>
-                    {work.period && (
-                      <div className={`text-xs font-black px-5 py-2 rounded-full border ${theme.boxBg}`}>
-                        {work.period} {work.isCurrent ? <span className="text-blue-500 ml-1">(재직중)</span> : ''}
-                      </div>
-                    )}
-                  </div>
-                  <p className={`text-[15px] whitespace-pre-wrap leading-relaxed font-medium ${theme.textSub}`}>{work.jobDescription}</p>
-                </div>
-              ))}
-            </div>
-          </section>
-          <div className="absolute bottom-8 right-10 text-[11px] opacity-30 font-bold tracking-tighter italic">{String(currentPageNumber++).padStart(2, '0')} 페이지</div>
-        </>
-      )});
-    }
-  }
-
-  // --- PROJECTS (프로젝트) ---
-  const totalProjects = formData.projects.length;
-  if (githubUsername || totalProjects > 0) {
-    const projectsPerPage = 3;
-    const firstBatchSize = githubUsername ? 2 : 3;
-    const firstBatch = formData.projects.slice(0, firstBatchSize);
-    
-    pages.push({ id: pages.length + 1, content: (
-      <>
-        {githubUsername && (
-          <section className="mb-12 mt-4">
-            <h3 className={`text-base uppercase tracking-widest font-black mb-6 border-b-2 pb-1 inline-block ${theme.sectionTitle}`}>GitHub 활동</h3>
-            <div className={`flex justify-center p-8 border rounded-3xl ${theme.boxBg}`}>
-              <GitHubCalendar 
-                username={githubUsername} 
-                blockSize={printMode ? 9 : 11} 
-                blockMargin={4} 
-                fontSize={11} 
-                colorScheme={printMode ? "light" : (isDarkMode ? "dark" : "light")} 
-                theme={calendarTheme} 
-              />
-            </div>
-          </section>
-        )}
-        
-        {firstBatch.length > 0 && (
-          <section className={githubUsername ? "" : "mt-4"}>
-            <h3 className={`text-base uppercase tracking-widest font-black mb-10 border-b-2 pb-1 inline-block ${theme.sectionTitle}`}>주요 프로젝트</h3>
-            <div className="space-y-12">
-              {firstBatch.map((project, index) => (
-                <div key={index} className={`relative pl-8 border-l-2 ${theme.timelineLine}`}>
-                  <div className="absolute w-4 h-4 rounded-full -left-[9px] top-1.5 bg-blue-600 ring-4 ring-white dark:ring-zinc-800"></div>
-                  <div className="flex justify-between items-start mb-4">
-                    <h4 className={`text-2xl font-black ${theme.textMain}`}>{project.name}</h4>
-                    {project.period && <span className={`text-xs font-black px-5 py-2 rounded-full border ${theme.boxBg}`}>{project.period}</span>}
-                  </div>
-                  <p className={`text-base mb-4 text-blue-500 font-bold`}>{project.role ? `${project.role} | ` : ''}{project.techStack}</p>
-                  <p className={`text-[15px] whitespace-pre-wrap leading-relaxed font-medium ${theme.textSub}`}>{project.description}</p>
-                </div>
-              ))}
-            </div>
-          </section>
-        )}
-        <div className="absolute bottom-8 right-10 text-[11px] opacity-30 font-bold tracking-tighter italic">{String(currentPageNumber++).padStart(2, '0')} 페이지</div>
-      </>
-    )});
-
-    for (let i = firstBatchSize; i < totalProjects; i += projectsPerPage) {
-      const batch = formData.projects.slice(i, i + projectsPerPage);
-      pages.push({ id: pages.length + 1, content: (
-        <>
-          <section className="mt-4">
-            <h3 className={`text-base uppercase tracking-widest font-black mb-10 border-b-2 pb-1 inline-block ${theme.sectionTitle}`}>프로젝트 (이어서)</h3>
-            <div className="space-y-12">
-              {batch.map((project, index) => (
-                <div key={index} className={`relative pl-8 border-l-2 ${theme.timelineLine}`}>
-                  <div className="absolute w-4 h-4 rounded-full -left-[9px] top-1.5 bg-blue-600 ring-4 ring-white dark:ring-zinc-800"></div>
-                  <div className="flex justify-between items-start mb-4">
-                    <h4 className={`text-2xl font-black ${theme.textMain}`}>{project.name}</h4>
-                    {project.period && <span className={`text-xs font-black px-5 py-2 rounded-full border ${theme.boxBg}`}>{project.period}</span>}
-                  </div>
-                  <p className={`text-base mb-4 text-blue-500 font-bold`}>{project.role ? `${project.role} | ` : ''}{project.techStack}</p>
-                  <p className={`text-[15px] whitespace-pre-wrap leading-relaxed font-medium ${theme.textSub}`}>{project.description}</p>
-                </div>
-              ))}
-            </div>
-          </section>
-          <div className="absolute bottom-8 right-10 text-[11px] opacity-30 font-bold tracking-tighter italic">{String(currentPageNumber++).padStart(2, '0')} 페이지</div>
-        </>
-      )});
-    }
-  }
-
-  // --- SELF INTRODUCTION (자기소개서) ---
-  if (formData.selfIntroGrowth || formData.selfIntroCharacter || formData.selfIntroMotivation) {
-    pages.push({ id: pages.length + 1, content: (
-      <>
-        <section className="mt-4 space-y-12">
-          <h3 className={`text-base uppercase tracking-widest font-black mb-6 border-b-2 pb-1 inline-block ${theme.sectionTitle}`}>자기소개서</h3>
-          
-          {formData.selfIntroGrowth && (
-            <div>
-              <h4 className={`text-lg font-black mb-4 flex items-center gap-3 ${theme.textMain}`}>
-                <span className="w-7 h-7 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-sm">1</span>
-                성장과정
-              </h4>
-              <p className={`text-[15px] leading-[1.9] whitespace-pre-wrap font-medium ${theme.textSub}`}>{formData.selfIntroGrowth}</p>
-            </div>
-          )}
-          {formData.selfIntroCharacter && (
-            <div>
-              <h4 className={`text-lg font-black mb-4 flex items-center gap-3 ${theme.textMain}`}>
-                <span className="w-7 h-7 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-sm">2</span>
-                성격의 장단점
-              </h4>
-              <p className={`text-[15px] leading-[1.9] whitespace-pre-wrap font-medium ${theme.textSub}`}>{formData.selfIntroCharacter}</p>
-            </div>
-          )}
-          {formData.selfIntroMotivation && (
-            <div>
-              <h4 className={`text-lg font-black mb-4 flex items-center gap-3 ${theme.textMain}`}>
-                <span className="w-7 h-7 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-sm">3</span>
-                지원동기 및 포부
-              </h4>
-              <p className={`text-[15px] leading-[1.9] whitespace-pre-wrap font-medium ${theme.textSub}`}>{formData.selfIntroMotivation}</p>
-            </div>
-          )}
-        </section>
-        <div className="absolute bottom-8 right-10 text-[11px] opacity-30 font-bold tracking-tighter italic">{String(currentPageNumber++).padStart(2, '0')} 페이지</div>
-      </>
-    )});
-  }
+  pages.push({ id: currentPageNumber, content: (
+    <>
+      {sectionContent.slice(3)}
+      <div className="absolute bottom-8 right-10 text-[11px] opacity-30 font-bold tracking-tighter italic">{String(currentPageNumber++).padStart(2, '0')} 페이지</div>
+    </>
+  )});
 
   // --- 마지막 페이지: 마무리 인사 ---
-  pages.push({ id: pages.length + 1, content: (
+  pages.push({ id: currentPageNumber, content: (
     <>
       <div className="flex-1 flex flex-col items-center justify-center text-center">
         <div className="w-20 h-20 bg-blue-600 rounded-3xl flex items-center justify-center text-white mb-8 shadow-2xl">

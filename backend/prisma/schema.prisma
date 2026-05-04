@@ -68,6 +68,8 @@ model Resume {
   selfIntroCharacter  String? @db.Text // 성격의 장단점
   selfIntroMotivation String? @db.Text // 지원동기 및 포부
 
+  sectionOrder        String? @default("edu,skills,experience,projects,certs,extra") // 섹션 순서 (쉼표로 구분)
+
   projects        Project[]
   workExperiences WorkExperience[]
   certifications  Certification[]

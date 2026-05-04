@@ -55,6 +55,7 @@ function UserResumePage({ subdomain }) {
       selfIntroGrowth: resume.selfIntroGrowth || "",
       selfIntroCharacter: resume.selfIntroCharacter || "",
       selfIntroMotivation: resume.selfIntroMotivation || "",
+      sectionOrder: resume.sectionOrder || "edu,skills,experience,projects,certs,extra",
       
       workExperiences: resume.workExperiences?.length > 0 
         ? resume.workExperiences.map((w, i) => ({ 
