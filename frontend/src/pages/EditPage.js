@@ -115,12 +115,29 @@ function EditPage({ isDarkMode, toggleDarkMode }) {
     setTimeout(() => window.print(), 500);
   };
 
-  if (loading) return <PageLayout isDarkMode={isDarkMode}><div className="h-full flex items-center justify-center animate-pulse text-slate-500 font-bold text-xl">데이터 로딩 중...</div></PageLayout>;
+  const [isDragging, setIsDragging] = useState(false);
+
+  const handleDragStart = useCallback(() => {
+    setIsDragging(true);
+  }, []);
+
+  const handleDragEndWithState = useCallback((result) => {
+    setIsDragging(false);
+    handleDragEnd(result);
+  }, [handleDragEnd]);
 
   // --- 동적 스케일 계산 ---
   const leftPanePixelWidth = (leftWidth / 100) * windowSize.width;
-  const dynamicFormZoom = Math.min(1.4, Math.max(0.75, leftPanePixelWidth / 800));
+  const dynamicFormZoom = Math.min(1.2, Math.max(0.7, leftPanePixelWidth / 900));
   
+  // 드래그 중에는 줌 수치를 고정하여 좌표 계산 오류 방지
+  const [activeZoom, setActiveZoom] = useState(dynamicFormZoom);
+  useEffect(() => {
+    if (!isDragging) setActiveZoom(dynamicFormZoom);
+  }, [dynamicFormZoom, isDragging]);
+
+  if (loading) return <PageLayout isDarkMode={isDarkMode}><div className="h-full flex items-center justify-center animate-pulse text-slate-500 font-bold text-xl">데이터 로딩 중...</div></PageLayout>;
+
   const getScale = () => {
     const a4HeightPx = 1122.52;
     if (focusedPage) return (windowSize.height - 76) / a4HeightPx;
@@ -128,9 +145,10 @@ function EditPage({ isDarkMode, toggleDarkMode }) {
   };
 
   const baseScale = getScale();
+  // 리사이징 중에도 아주 짧은 transition을 주어 툭툭 끊김 방지
   const transitionClass = isResizing 
-    ? "transition-none" 
-    : "transition-all duration-[800ms] ease-[cubic-bezier(0.23,1,0.32,1)]";
+    ? "transition-all duration-75 ease-linear" 
+    : "transition-all duration-700 ease-[cubic-bezier(0.23,1,0.32,1)]";
 
   return (
     <PageLayout isDarkMode={isDarkMode} noPadding={true}>
@@ -163,17 +181,26 @@ function EditPage({ isDarkMode, toggleDarkMode }) {
       <main className="h-[calc(100vh-56px)] flex overflow-hidden w-full relative print:hidden">
         <div 
           style={{ width: `${leftWidth}%` }} 
-          className={`h-full overflow-y-auto custom-scrollbar p-6 border-r ${transitionClass} ${
+          className={`h-full overflow-y-auto custom-scrollbar border-r relative ${transitionClass} ${
             isDarkMode ? 'border-zinc-800 bg-zinc-900/30' : 'border-zinc-200 bg-gray-50/30'
           }`}
         >
-          <div className="w-full mx-auto pb-10 origin-top-left" style={{ zoom: dynamicFormZoom }}>
+          {/* 배율 조절 컨테이너: DND와 잘 어울리는 zoom 방식 사용 및 잘림 방지 */}
+          <div 
+            className="w-full relative origin-top-left" 
+            style={{ 
+              zoom: activeZoom,
+              padding: '24px',
+              minHeight: '100%'
+            }}
+          >
             <ResumeForm
               formData={formData} handleChange={handleChange} handleProjectChange={handleProjectChange}
               addProject={addProject} removeProject={removeProject} handleWorkChange={handleWorkChange}
               addWork={addWork} removeWork={removeWork} handleCertChange={handleCertChange}
               addCert={addCert} removeCert={removeCert} handleSubmit={handleSubmit}
-              handleGithubSync={handleGithubSync} handleDragEnd={handleDragEnd}
+              handleGithubSync={handleGithubSync} handleDragEnd={handleDragEndWithState}
+              onDragStart={handleDragStart}
               handleImageUpload={handleImageUpload} auditContent={auditContent}
               isDarkMode={isDarkMode} paneWidth={leftPanePixelWidth}
             />
@@ -219,7 +246,7 @@ function EditPage({ isDarkMode, toggleDarkMode }) {
 
           <div className={`w-full h-full flex justify-center items-start ${focusedPage ? 'overflow-hidden' : 'overflow-y-auto overflow-x-hidden'}`}>
             <div 
-              className={`${transitionClass} transform-gpu flex items-center justify-center shrink-0`} 
+              className={`${transitionClass} transform-gpu flex items-center justify-center shrink-0 ${isDragging ? 'opacity-30 grayscale' : 'opacity-100'}`} 
               style={{ transform: `scale(${baseScale})`, transformOrigin: 'top center', marginTop: '40px', marginBottom: '80px' }}
             >
               <ResumePreview formData={formData} ref={resumeRef} isDarkMode={isDarkMode} paneWidth={100 - leftWidth} focusedPage={focusedPage} setFocusedPage={setFocusedPage} setTotalPages={setTotalPages} containerHeight={windowSize.height - 56} scale={baseScale} marginTop={40} />
