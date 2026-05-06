@@ -18,6 +18,7 @@ const ResumeForm = ({
   handleSubmit,
   handleGithubSync,
   handleDragEnd,
+  onDragStart,
   handleImageUpload,
   auditContent,
   isDarkMode,
@@ -197,7 +198,7 @@ const ResumeForm = ({
       {/* 본문 영역 */}
       <div className="flex-1 min-h-0 overflow-y-auto custom-scrollbar p-4 lg:p-8">
         <div className="max-w-[1400px] mx-auto space-y-8">
-          <DragDropContext onDragEnd={handleDragEnd}>
+          <DragDropContext onDragStart={onDragStart} onDragEnd={handleDragEnd}>
             {activeTab === 'basic' && (
               <div className="space-y-8 animate-fade-in">
                 <div className={`p-6 lg:p-8 rounded-[32px] border ${theme.cardBg} transition-all`}>
@@ -502,7 +503,16 @@ const ResumeForm = ({
                 <Droppable droppableId="projects">{(provided) => (<div {...provided.droppableProps} ref={provided.innerRef} className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {formData.projects.map((project, index) => (
                     <Draggable key={project.id} draggableId={String(project.id)} index={index}>{(provided, snapshot) => (
-                      <div ref={provided.innerRef} {...provided.draggableProps} style={provided.draggableProps.style} className={`p-6 lg:p-8 rounded-[32px] border ${snapshot.isDragging ? 'shadow-2xl border-blue-500 scale-[1.01] bg-white dark:bg-zinc-800 z-[100]' : theme.cardBg} relative group transition-all`}><div {...provided.dragHandleProps} className="absolute left-1/2 -translate-x-1/2 top-3 w-12 h-1.5 bg-zinc-300 dark:bg-zinc-700 rounded-full cursor-grab active:cursor-grabbing hover:bg-blue-400 transition-colors" />
+                      <div 
+                        ref={provided.innerRef} 
+                        {...provided.draggableProps} 
+                        style={provided.draggableProps.style} 
+                        className={`p-6 lg:p-8 rounded-[32px] border transition-[background-color,border-color,box-shadow] duration-200 ${
+                          snapshot.isDragging 
+                            ? 'shadow-xl border-blue-500 bg-white dark:bg-zinc-800 z-[100]' 
+                            : theme.cardBg
+                        } relative group`}
+                      ><div {...provided.dragHandleProps} className="absolute left-1/2 -translate-x-1/2 top-3 w-12 h-1.5 bg-zinc-300 dark:bg-zinc-700 rounded-full cursor-grab active:cursor-grabbing hover:bg-blue-400 transition-colors" />
                         <div className="space-y-5 mt-4">
                           <div className="flex flex-col gap-2"><label className={`text-[11px] font-black uppercase ${theme.subText}`}>프로젝트명</label><input type="text" name="name" value={project.name || ""} onChange={(e) => handleProjectChange(index, e)} className={`w-full px-4 py-3 rounded-xl border ${theme.innerInputBg} font-black`} /></div>
                           <div className="grid grid-cols-2 gap-4">
@@ -575,9 +585,10 @@ const ResumeForm = ({
                                   ref={provided.innerRef}
                                   {...provided.draggableProps}
                                   {...provided.dragHandleProps}
-                                  className={`flex items-center gap-4 p-5 rounded-2xl border-2 transition-all ${
+                                  style={provided.draggableProps.style}
+                                  className={`flex items-center gap-4 p-5 rounded-2xl border-2 transition-[background-color,border-color,box-shadow] duration-200 ${
                                     snapshot.isDragging 
-                                      ? 'bg-blue-600 border-blue-400 text-white shadow-2xl z-50' 
+                                      ? 'bg-blue-600 border-blue-400 text-white shadow-xl z-50' 
                                       : `${theme.innerInputBg} hover:border-blue-500/50`
                                   }`}
                                 >
@@ -660,7 +671,7 @@ const ResumeForm = ({
 
                 <div className="relative pt-4">
                   <div className="absolute -top-2 left-1/2 -translate-x-1/2 z-10 w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center shadow-lg border-4 border-white dark:border-zinc-900">
-                    <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={4}><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" /></svg>
+                    <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={4}><path strokeLinecap="round" strokeLineround="round" d="M19 9l-7 7-7-7" /></svg>
                   </div>
                   <div className="space-y-2">
                     <span className="pl-1 text-[10px] font-black text-emerald-500 uppercase tracking-tighter">Recommended (추천문)</span>

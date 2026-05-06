@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useCallback, useMemo, useEffect } from "react";
 import { GitHubCalendar } from "react-github-calendar";
 import { Mail, Phone, MapPin, User, Globe } from "lucide-react";
 
@@ -21,20 +21,21 @@ const GithubIcon = ({ size = 14, className = "" }) => (
   </svg>
 );
 
-const ResumePreview = React.forwardRef(({ 
-  formData, 
-  isDarkMode, 
-  paneWidth = 50, 
-  focusedPage, 
-  setFocusedPage,
-  setTotalPages,
-  containerHeight = 0,
-  scale = 1.0,
-  marginTop = 0,
-  printMode = false 
-}, ref) => {
-  
-  const getGithubUsername = (url) => {
+const ResumePreview = React.memo(React.forwardRef((props, ref) => {
+  const { 
+    formData, 
+    isDarkMode, 
+    paneWidth = 50, 
+    focusedPage, 
+    setFocusedPage,
+    setTotalPages,
+    containerHeight = 0,
+    scale = 1.0,
+    marginTop = 0,
+    printMode = false 
+  } = props;
+
+  const getGithubUsername = useCallback((url) => {
     if (!url) return null;
     let username = url.trim();
     if (username.includes("github.com/")) {
@@ -42,11 +43,11 @@ const ResumePreview = React.forwardRef(({
       username = splitUrl.split("/")[0];
     }
     return username;
-  };
+  }, []);
 
-  const githubUsername = getGithubUsername(formData.githubUrl);
+  const githubUsername = useMemo(() => getGithubUsername(formData.githubUrl), [formData.githubUrl, getGithubUsername]);
 
-  const theme = {
+  const theme = useMemo(() => ({
     container: isDarkMode ? "bg-zinc-800 text-zinc-100" : "bg-white text-zinc-900",
     name: isDarkMode ? "text-white" : "text-zinc-900",
     bio: isDarkMode ? "text-zinc-400" : "text-zinc-500",
@@ -59,30 +60,26 @@ const ResumePreview = React.forwardRef(({
     boxBg: isDarkMode ? "bg-zinc-900/50 border-zinc-700" : "bg-gray-50 border-zinc-200",
     timelineLine: isDarkMode ? "border-zinc-700" : "border-zinc-300",
     link: isDarkMode ? "text-blue-400" : "text-blue-600",
-  };
+  }), [isDarkMode]);
 
-  const calendarTheme = {
+  const calendarTheme = useMemo(() => ({
     light: ['#ebedf0', '#9be9a8', '#40c463', '#30a14e', '#216e39'],
     dark: ['#161b22', '#0e4429', '#006d32', '#26a641', '#39d353'],
-  };
+  }), []);
 
-  const cols = paneWidth > 75 ? 4 : (paneWidth > 55 ? 3 : (paneWidth > 30 ? 2 : 1));
-
-  const handlePageClick = (pageNumber) => {
+  const handlePageClick = useCallback((pageNumber) => {
+    const cols = paneWidth > 75 ? 4 : (paneWidth > 55 ? 3 : (paneWidth > 30 ? 2 : 1));
     if (focusedPage === pageNumber) setFocusedPage(null);
     else if (cols > 1) setFocusedPage(pageNumber);
-  };
+  }, [focusedPage, paneWidth, setFocusedPage]);
 
-  const handleLinkClick = (e) => {
+  const handleLinkClick = useCallback((e) => {
     e.stopPropagation();
-  };
-
-  const pages = [];
-  let currentPageNumber = 1;
+  }, []);
 
   // --- 섹션별 렌더링 함수들 ---
-  const renderEdu = () => (
-    <section className="mb-10">
+  const renderEdu = useCallback(() => (
+    <section key="edu" className="mb-10">
       <h3 className={`text-base uppercase tracking-widest font-black mb-6 border-b-2 pb-1 inline-block ${theme.sectionTitle}`}>학력 사항</h3>
       <div className="flex justify-between items-start mt-2">
         <div>
@@ -96,10 +93,10 @@ const ResumePreview = React.forwardRef(({
         )}
       </div>
     </section>
-  );
+  ), [formData.school, formData.major, formData.gpa, theme, isDarkMode]);
 
-  const renderSkills = () => (
-    <section className="mb-10">
+  const renderSkills = useCallback(() => (
+    <section key="skills" className="mb-10">
       <h3 className={`text-base uppercase tracking-widest font-black mb-6 border-b-2 pb-1 inline-block ${theme.sectionTitle}`}>보유 기술</h3>
       <div className="flex flex-wrap gap-3 mt-2">
         {formData.skills ? formData.skills.split(",").map((s, i) => (
@@ -107,10 +104,10 @@ const ResumePreview = React.forwardRef(({
         )) : <p className="text-base opacity-40">기술 스택을 입력해주세요.</p>}
       </div>
     </section>
-  );
+  ), [formData.skills, theme]);
 
-  const renderCerts = () => formData.certifications?.length > 0 && (
-    <section className="mb-10">
+  const renderCerts = useCallback(() => formData.certifications?.length > 0 && (
+    <section key="certs" className="mb-10">
       <h3 className={`text-base uppercase tracking-widest font-black mb-6 border-b-2 pb-1 inline-block ${theme.sectionTitle}`}>자격 / 어학 / 수상</h3>
       <div className="grid grid-cols-2 gap-x-10 gap-y-5">
         {formData.certifications.slice(0, 6).map((cert, i) => (
@@ -124,85 +121,70 @@ const ResumePreview = React.forwardRef(({
         ))}
       </div>
     </section>
-  );
+  ), [formData.certifications, theme]);
 
-  const renderExperience = () => {
-    if (!formData.workExperiences?.length) return null;
-    return (
-      <section className="mb-10">
+  const renderWorkItem = useCallback((work, index, isFirstInSection) => (
+    <div key={`work-${index}`} className="mb-12 last:mb-0">
+      {isFirstInSection && (
         <h3 className={`text-base uppercase tracking-widest font-black mb-10 border-b-2 pb-1 inline-block ${theme.sectionTitle}`}>경력 사항</h3>
-        <div className="space-y-12">
-          {formData.workExperiences.map((work, index) => (
-            <div key={index} className={`relative pl-8 border-l-2 ${theme.timelineLine}`}>
-              <div className="absolute w-4 h-4 rounded-full -left-[9px] top-1.5 bg-blue-600 ring-4 ring-white dark:ring-zinc-800"></div>
-              <div className="flex justify-between items-start mb-4">
-                <div>
-                  <h4 className={`text-3xl font-black ${theme.textMain}`}>{work.companyName}</h4>
-                  <p className={`text-base font-bold mt-1 text-blue-500`}>
-                    {work.department} 
-                    {work.position && ` | ${work.position}`} 
-                    {work.role && ` | ${work.role}`}
-                  </p>
-                </div>
-                {work.period && (
-                  <div className={`text-xs font-black px-5 py-2 rounded-full border ${theme.boxBg}`}>
-                    {work.period} {work.isCurrent ? <span className="text-blue-500 ml-1">(재직중)</span> : ''}
-                  </div>
-                )}
-              </div>
-              <p className={`text-[15px] whitespace-pre-wrap leading-relaxed font-medium ${theme.textSub}`}>{work.jobDescription}</p>
-            </div>
-          ))}
-        </div>
-      </section>
-    );
-  };
-
-  const renderProjects = () => {
-    const totalProjects = formData.projects.length;
-    if (!githubUsername && totalProjects === 0) return null;
-    return (
-      <section className="mb-10">
-        {githubUsername && (
-          <div className="mb-12">
-            <h3 className={`text-base uppercase tracking-widest font-black mb-6 border-b-2 pb-1 inline-block ${theme.sectionTitle}`}>GitHub 활동</h3>
-            <div className={`flex justify-center p-8 border rounded-3xl ${theme.boxBg}`}>
-              <GitHubCalendar 
-                username={githubUsername} 
-                blockSize={printMode ? 9 : 11} 
-                blockMargin={4} 
-                fontSize={11} 
-                colorScheme={printMode ? "light" : (isDarkMode ? "dark" : "light")} 
-                theme={calendarTheme} 
-              />
-            </div>
-          </div>
-        )}
-        
-        {totalProjects > 0 && (
+      )}
+      <div className={`relative pl-8 border-l-2 ${theme.timelineLine}`}>
+        <div className="absolute w-4 h-4 rounded-full -left-[9px] top-1.5 bg-blue-600 ring-4 ring-white dark:ring-zinc-800"></div>
+        <div className="flex justify-between items-start mb-4">
           <div>
-            <h3 className={`text-base uppercase tracking-widest font-black mb-10 border-b-2 pb-1 inline-block ${theme.sectionTitle}`}>주요 프로젝트</h3>
-            <div className="space-y-12">
-              {formData.projects.map((project, index) => (
-                <div key={index} className={`relative pl-8 border-l-2 ${theme.timelineLine}`}>
-                  <div className="absolute w-4 h-4 rounded-full -left-[9px] top-1.5 bg-blue-600 ring-4 ring-white dark:ring-zinc-800"></div>
-                  <div className="flex justify-between items-start mb-4">
-                    <h4 className={`text-2xl font-black ${theme.textMain}`}>{project.name}</h4>
-                    {project.period && <span className={`text-xs font-black px-5 py-2 rounded-full border ${theme.boxBg}`}>{project.period}</span>}
-                  </div>
-                  <p className={`text-base mb-4 text-blue-500 font-bold`}>{project.role ? `${project.role} | ` : ''}{project.techStack}</p>
-                  <p className={`text-[15px] whitespace-pre-wrap leading-relaxed font-medium ${theme.textSub}`}>{project.description}</p>
-                </div>
-              ))}
-            </div>
+            <h4 className={`text-3xl font-black ${theme.textMain}`}>{work.companyName}</h4>
+            <p className={`text-base font-bold mt-1 text-blue-500`}>
+              {work.department} 
+              {work.position && ` | ${work.position}`} 
+              {work.role && ` | ${work.role}`}
+            </p>
           </div>
-        )}
-      </section>
-    );
-  };
+          {work.period && (
+            <div className={`text-xs font-black px-5 py-2 rounded-full border ${theme.boxBg}`}>
+              {work.period} {work.isCurrent ? <span className="text-blue-500 ml-1">(재직중)</span> : ''}
+            </div>
+          )}
+        </div>
+        <p className={`text-[15px] whitespace-pre-wrap leading-relaxed font-medium ${theme.textSub}`}>{work.jobDescription}</p>
+      </div>
+    </div>
+  ), [theme]);
 
-  const renderExtra = () => (formData.selfIntroGrowth || formData.selfIntroCharacter || formData.selfIntroMotivation) && (
-    <section className="mb-10 space-y-12">
+  const renderProjectItem = useCallback((project, index, isFirstInSection, isGitHubSection) => (
+    <div key={isGitHubSection ? 'github' : `proj-${index}`} className="mb-12 last:mb-0">
+      {isFirstInSection && (
+        <h3 className={`text-base uppercase tracking-widest font-black mb-10 border-b-2 pb-1 inline-block ${theme.sectionTitle}`}>
+          {isGitHubSection ? "GitHub 활동" : "주요 프로젝트"}
+        </h3>
+      )}
+      
+      {isGitHubSection ? (
+        <div className={`flex justify-center p-8 border rounded-3xl ${theme.boxBg}`}>
+          <GitHubCalendar 
+            username={githubUsername} 
+            blockSize={printMode ? 9 : 11} 
+            blockMargin={4} 
+            fontSize={11} 
+            colorScheme={printMode ? "light" : (isDarkMode ? "dark" : "light")} 
+            theme={calendarTheme} 
+          />
+        </div>
+      ) : (
+        <div className={`relative pl-8 border-l-2 ${theme.timelineLine}`}>
+          <div className="absolute w-4 h-4 rounded-full -left-[9px] top-1.5 bg-blue-600 ring-4 ring-white dark:ring-zinc-800"></div>
+          <div className="flex justify-between items-start mb-4">
+            <h4 className={`text-2xl font-black ${theme.textMain}`}>{project.name}</h4>
+            {project.period && <span className={`text-xs font-black px-5 py-2 rounded-full border ${theme.boxBg}`}>{project.period}</span>}
+          </div>
+          <p className={`text-base mb-4 text-blue-500 font-bold`}>{project.role ? `${project.role} | ` : ''}{project.techStack}</p>
+          <p className={`text-[15px] whitespace-pre-wrap leading-relaxed font-medium ${theme.textSub}`}>{project.description}</p>
+        </div>
+      )}
+    </div>
+  ), [theme, githubUsername, printMode, isDarkMode, calendarTheme]);
+
+  const renderExtra = useCallback(() => (formData.selfIntroGrowth || formData.selfIntroCharacter || formData.selfIntroMotivation) && (
+    <section key="extra" className="mb-10 space-y-12">
       <h3 className={`text-base uppercase tracking-widest font-black mb-6 border-b-2 pb-1 inline-block ${theme.sectionTitle}`}>자기소개서</h3>
       
       {formData.selfIntroGrowth && (
@@ -233,13 +215,13 @@ const ResumePreview = React.forwardRef(({
         </div>
       )}
     </section>
-  );
+  ), [formData.selfIntroGrowth, formData.selfIntroCharacter, formData.selfIntroMotivation, theme]);
 
   // --- 메인 페이지 구성 (순서 적용) ---
   
   // 1. 기본 인적사항 헤더 (항상 최상단)
-  const header = (
-    <>
+  const header = useMemo(() => (
+    <div key="header-root">
       <div className="absolute top-0 left-0 w-full h-2 bg-blue-600"></div>
       <div className={`border-b-2 pb-10 mb-10 ${theme.divider}`}>
         <div className="flex justify-between items-start mb-8">
@@ -318,48 +300,127 @@ const ResumePreview = React.forwardRef(({
           )}
         </div>
       </div>
-    </>
-  );
+    </div>
+  ), [formData, theme, handleLinkClick]);
 
-  // 2. 섹션들을 순서대로 배치
-  const sections = (formData.sectionOrder || "edu,skills,experience,projects,certs,extra").split(',');
-  const sectionContent = sections.map(sec => {
-    switch(sec) {
+  const getItemHeight = useCallback((item) => {
+    switch(item.type) {
+      case 'edu': return formData.school ? 150 : 0;
+      case 'skills': {
+        if (!formData.skills) return 0;
+        const skillCount = formData.skills.split(',').length;
+        return 120 + Math.ceil(skillCount / 5) * 45;
+      }
+      case 'certs': {
+        if (!formData.certifications?.length) return 0;
+        return (formData.certifications.length) * 65 + 100;
+      }
+      case 'experience': {
+        if (!item.data) return 0;
+        const w = item.data;
+        return 160 + (w.jobDescription?.length || 0) / 45 * 22;
+      }
+      case 'projects': {
+        if (!item.data) return 0;
+        if (item.data.github) return 320;
+        const p = item.data;
+        return 220 + (p.description?.length || 0) / 45 * 22;
+      }
+      case 'extra': {
+        if (!formData.selfIntroGrowth && !formData.selfIntroCharacter && !formData.selfIntroMotivation) return 0;
+        let h = 100;
+        if (formData.selfIntroGrowth) h += 120 + (formData.selfIntroGrowth.length / 45) * 22;
+        if (formData.selfIntroCharacter) h += 120 + (formData.selfIntroCharacter.length / 45) * 22;
+        if (formData.selfIntroMotivation) h += 120 + (formData.selfIntroMotivation.length / 45) * 22;
+        return h;
+      }
+      default: return 0;
+    }
+  }, [formData]);
+
+  const renderItem = useCallback((item) => {
+    switch(item.type) {
       case 'edu': return renderEdu();
       case 'skills': return renderSkills();
       case 'certs': return renderCerts();
-      case 'experience': return renderExperience();
-      case 'projects': return renderProjects();
+      case 'experience': return renderWorkItem(item.data, item.index, item.isFirst);
+      case 'projects': return renderProjectItem(item.data, item.index, item.isFirst, item.data.github);
       case 'extra': return renderExtra();
       default: return null;
     }
-  });
+  }, [renderEdu, renderSkills, renderCerts, renderWorkItem, renderProjectItem, renderExtra]);
 
-  // 3. 페이지 분할 로직 (간소화 버전 - 실제로는 높이 계산이 필요하지만, 여기서는 순서대로 나열)
-  // Page 1: Header + 일부 섹션
-  // Page 2+: 나머지 섹션
-  // TODO: 나중에 더 정밀한 자동 페이징이 필요하면 각 섹션별로 pages.push를 조절해야 함.
-  // 현재는 우선 모든 섹션을 순서대로 보여주는 것에 집중.
+  const pages = useMemo(() => {
+    const pagesList = [];
+    let currentPageNum = 1;
+    const sectionsArr = (formData.sectionOrder || "edu,skills,experience,projects,certs,extra").split(',');
+    
+    const flatItems = [];
+    sectionsArr.forEach(sec => {
+      if (sec === 'experience' && formData.workExperiences?.length > 0) {
+        formData.workExperiences.forEach((work, i) => {
+          flatItems.push({ type: 'experience', data: work, index: i, isFirst: i === 0 });
+        });
+      } else if (sec === 'projects') {
+        if (githubUsername) {
+          flatItems.push({ type: 'projects', data: { github: true }, index: -1, isFirst: true });
+        }
+        if (formData.projects?.length > 0) {
+          formData.projects.forEach((proj, i) => {
+            flatItems.push({ type: 'projects', data: proj, index: i, isFirst: !githubUsername && i === 0 });
+          });
+        }
+      } else {
+        flatItems.push({ type: sec, data: null, index: 0, isFirst: true });
+      }
+    });
 
-  pages.push({ id: currentPageNumber, content: (
-    <>
-      {header}
-      {sectionContent.slice(0, 3)}
-      <div className="absolute bottom-8 right-10 text-[11px] opacity-30 font-bold tracking-tighter italic">{String(currentPageNumber++).padStart(2, '0')} 페이지</div>
-    </>
-  )});
+    const MAX_PAGE_HEIGHT = 920;
+    const initialHeaderHeight = 380;
 
-  pages.push({ id: currentPageNumber, content: (
-    <>
-      {sectionContent.slice(3)}
-      <div className="absolute bottom-8 right-10 text-[11px] opacity-30 font-bold tracking-tighter italic">{String(currentPageNumber++).padStart(2, '0')} 페이지</div>
-    </>
-  )});
+    let currentPageItems = [];
+    let currentHeight = initialHeaderHeight;
 
-  // --- 마지막 페이지: 마무리 인사 ---
-  pages.push({ id: currentPageNumber, content: (
-    <>
-      <div className="flex-1 flex flex-col items-center justify-center text-center">
+    flatItems.forEach((item) => {
+      const itemHeight = getItemHeight(item);
+      if (itemHeight === 0) return;
+
+      if (currentHeight + itemHeight > MAX_PAGE_HEIGHT && currentPageItems.length > 0) {
+        pagesList.push({
+          id: currentPageNum,
+          content: (
+            <div className="flex flex-col h-full pb-16">
+              {currentPageNum === 1 && header}
+              {currentPageItems.map((it, i) => <React.Fragment key={i}>{renderItem(it)}</React.Fragment>)}
+              <div className="absolute bottom-8 right-10 text-[11px] opacity-30 font-bold tracking-tighter italic">{String(currentPageNum++).padStart(2, '0')} 페이지</div>
+            </div>
+          )
+        });
+        currentPageItems = [item];
+        currentHeight = itemHeight;
+      } else {
+        currentPageItems.push(item);
+        currentHeight += itemHeight;
+      }
+    });
+
+    if (currentPageItems.length > 0) {
+      pagesList.push({
+        id: currentPageNum,
+        content: (
+          <div className="flex flex-col h-full pb-16">
+            {currentPageNum === 1 && header}
+            {currentPageItems.map((it, i) => <React.Fragment key={i}>{renderItem(it)}</React.Fragment>)}
+            <div className="absolute bottom-8 right-10 text-[11px] opacity-30 font-bold tracking-tighter italic">{String(currentPageNum++).padStart(2, '0')} 페이지</div>
+          </div>
+        )
+      });
+      currentPageNum++;
+    }
+
+    // 마무리 인사 페이지 추가
+    pagesList.push({ id: currentPageNum, content: (
+      <div className="flex flex-col h-full items-center justify-center text-center">
         <div className="w-20 h-20 bg-blue-600 rounded-3xl flex items-center justify-center text-white mb-8 shadow-2xl">
           <span className="text-4xl font-black">O</span>
         </div>
@@ -372,19 +433,21 @@ const ResumePreview = React.forwardRef(({
             <a href={formData.blogUrl} target="_blank" rel="noopener noreferrer" onClick={handleLinkClick} className={`text-lg font-bold hover:underline ${theme.link}`}>{formData.blogUrl}</a>
           )}
         </div>
+        <div className="absolute bottom-4 right-8 text-[10px] opacity-30 font-bold tracking-tighter italic">마지막 페이지</div>
       </div>
-      <div className="absolute bottom-4 right-8 text-[10px] opacity-30 font-bold tracking-tighter italic">마지막 페이지</div>
-    </>
-  )});
+    )});
 
-  // Hooks using 'pages' must come AFTER its initialization
-  React.useEffect(() => {
+    return pagesList;
+  }, [formData, githubUsername, theme, getItemHeight, renderItem, header, handleLinkClick]);
+
+  useEffect(() => {
+    const cols = paneWidth > 75 ? 4 : (paneWidth > 55 ? 3 : (paneWidth > 30 ? 2 : 1));
     if (cols === 1 && focusedPage !== null) {
       setFocusedPage(null);
     }
-  }, [cols, focusedPage, setFocusedPage]);
+  }, [paneWidth, focusedPage, setFocusedPage]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (setTotalPages) {
       setTotalPages(pages.length);
     }
@@ -416,6 +479,7 @@ const ResumePreview = React.forwardRef(({
   const gap = 8;
   const pageW = 210;
   const pageH = 297;
+  const cols = paneWidth > 75 ? 4 : (paneWidth > 55 ? 3 : (paneWidth > 30 ? 2 : 1));
   const rows = Math.ceil(pages.length / cols);
   const canvasW = `${cols * pageW + (cols - 1) * gap}mm`;
   const canvasH = `${rows * pageH + (rows - 1) * gap}mm`;
@@ -426,17 +490,19 @@ const ResumePreview = React.forwardRef(({
 
   if (focusedPage) {
     const pageIndex = pages.findIndex(p => p.id === focusedPage);
-    const col = pageIndex % cols;
-    const row = Math.floor(pageIndex / cols);
-    const tx = (col * (pageW + gap)) + (pageW / 2);
-    const ty = (row * (pageH + gap)) + (pageH / 2);
-    const canvasCenterX = (cols * pageW + (cols - 1) * gap) / 2;
-    translateX = `${canvasCenterX - tx}mm`;
-    const factor = 3.7795275591;
-    const viewportCenterInMm = (containerHeight / 2) / (scale * factor);
-    const topMarginInMm = marginTop / (scale * factor);
-    translateY = `${viewportCenterInMm - ty - topMarginInMm}mm`; 
-    zoomScale = 1.0; 
+    if (pageIndex !== -1) {
+      const col = pageIndex % cols;
+      const row = Math.floor(pageIndex / cols);
+      const tx = (col * (pageW + gap)) + (pageW / 2);
+      const ty = (row * (pageH + gap)) + (pageH / 2);
+      const canvasCenterX = (cols * pageW + (cols - 1) * gap) / 2;
+      translateX = `${canvasCenterX - tx}mm`;
+      const factor = 3.7795275591;
+      const viewportCenterInMm = (containerHeight / 2) / (scale * factor);
+      const topMarginInMm = marginTop / (scale * factor);
+      translateY = `${viewportCenterInMm - ty - topMarginInMm}mm`; 
+      zoomScale = 1.0; 
+    }
   }
 
   return (
@@ -473,6 +539,8 @@ const ResumePreview = React.forwardRef(({
       </div>
     </div>
   );
-});
+}));
+
+ResumePreview.displayName = 'ResumePreview';
 
 export default ResumePreview;
